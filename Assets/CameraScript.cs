@@ -88,8 +88,7 @@ public class CameraScript : MonoBehaviour
 
     public Tuple<int, int> GetBoundsOfHighestDensityValues(int[] array)
     {
-        int min = 0;
-        int max = 0;
+        int[] bounds = new int[2];
         int highestValue = 0;
         int highestIndex = 0;
 
@@ -104,33 +103,31 @@ public class CameraScript : MonoBehaviour
             }
         }
 
-        int iterations = 0;
+        for(int i = 0; i < 2; i++) {
+            int iterations = 0;
+            int lowest = array.Max();
 
-        while(iterations < 100) {
-            iterations++;
+            while(iterations < 100) {
+                if(i == 0) {
+                    iterations--;
+                } else {
+                    iterations++;
+                }
 
-            int indexValue = KeepInCircularRange(0, array.Length-1, highestIndex - iterations);
+                int indexValue = KeepInCircularRange(0, array.Length-1, highestIndex + iterations);
 
-            min = KeepInCircularRange(0, array.Length-1, indexValue-10);
+                if(array[indexValue] < lowest || lowest == array.Max()) {
+                    bounds[i] = indexValue;
+                    lowest = array[indexValue];
+                }
 
-            if(array[indexValue] + array[KeepInCircularRange(0, array.Length-1, indexValue+1)] < highestValue / 11 / 4) break;
+                if(array[indexValue] > array[bounds[i]] * 1.5f) break;
+            }
         }
 
-        iterations = 0;
+        Debug.Log("Max Index: "+highestIndex+", Min: "+bounds[0]+", Max: "+bounds[1]);
 
-        while(iterations < 100) {
-            iterations++;
-
-            int indexValue = KeepInCircularRange(0, array.Length-1, highestIndex + iterations);
-
-            max = KeepInCircularRange(0, array.Length-1, indexValue+10);
-
-            if(array[indexValue] + array[KeepInCircularRange(0, array.Length-1, indexValue-1)] < highestValue / 11 / 4) break;
-        }
-
-        Debug.Log("Max Index: "+highestIndex+", Min: "+min+", Max: "+max);
-
-        return new Tuple<int, int>(min, max);
+        return new Tuple<int, int>(bounds[0], bounds[1]);
     }
 
     public void GetHighlightColor()
