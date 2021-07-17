@@ -31,6 +31,8 @@ Shader "Custom/GrayScale"
         fixed4 _Color;
         float _MinimumHue;
         float _MaximumHue;
+        float _MinimumSaturation;
+        float _MaximumSaturation;
         float _GrayScaleSensitivity;
 
         // Add instancing support for this shader. You need to check 'Enable Instancing' on materials that use the shader.
@@ -96,7 +98,8 @@ Shader "Custom/GrayScale"
 
             bool highlight = false;
             
-            if(!IsGrayScale(c) && cHSV.y > 0.05f) {
+            // if(!IsGrayScale(c) && cHSV.y > 0.05f) {
+            if(cHSV.y > _MinimumSaturation/100.0f && cHSV.y < _MaximumSaturation/100.0f) {
                 if(_MinimumHue > _MaximumHue) {
                     if(cHSV.x > _MinimumHue/360.0f || cHSV.x < _MaximumHue/360.0f) {
                         highlight = true;
