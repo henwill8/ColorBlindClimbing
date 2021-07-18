@@ -66,88 +66,6 @@ public class CameraScript : MonoBehaviour
         // }
     }
 
-    public int KeepInCircularRange(int min, int max, int value)
-    {
-        while(value > max || value < min) {
-            if(value > max) value -= max - min + 1;
-            if(value < min) value += max - min + 1;
-        }
-        return value;
-    }
-
-    public int[] IntValueCounter(int[] inputArray, int length, int values)
-    {
-        int[] array = new int[values];
-
-        for(int i = 0; i < length; i++) {
-            array[inputArray[i]]++;
-        }
-
-        return array;
-    }
-
-    public int[] RemoveOutOfBoundValues(int[] input, int[] reference, int min, int max)
-    {
-        int[] array = new int[input.Length];
-        int skipped = 0;
-        
-        for(int i = 0; i < input.Length; i++) {
-            if(reference[i] > min && reference[i] < max) {
-                array[i - skipped] = input[i];
-            } else {
-                skipped++;
-            }
-        }
-
-        Array.Resize(ref array, array.Length - skipped);
-
-        return array;
-    }
-
-    public Tuple<int, int> GetBoundsOfHighestDensityValues(int[] array, float sensitivity)
-    {
-        int[] bounds = new int[2];
-        int highestValue = 0;
-        int highestIndex = 0;
-
-        for(int i = 0; i < array.Length; i++) {
-            int count = 0;
-            for(int j = 0; j < 11; j++) {
-                count += array[KeepInCircularRange(0, array.Length-1, i-j+5)];
-            }
-            if(count > highestValue) {
-                highestValue = count;
-                highestIndex = i;
-            }
-        }
-
-        for(int i = 0; i < 2; i++) {
-            int iterations = 0;
-            int lowest = array.Max();
-
-            while(iterations < 100) {
-                if(i == 0) {
-                    iterations--;
-                } else {
-                    iterations++;
-                }
-
-                int indexValue = KeepInCircularRange(0, array.Length-1, highestIndex + iterations);
-
-                if(array[indexValue] < lowest || lowest == array.Max()) {
-                    bounds[i] = indexValue;
-                    lowest = array[indexValue];
-                }
-
-                if(array[indexValue] * sensitivity > array[bounds[i]]) break;
-            }
-        }
-
-        Debug.Log("Max Index: "+highestIndex+", Min: "+bounds[0]+", Max: "+bounds[1]);
-
-        return new Tuple<int, int>(bounds[0], bounds[1]);
-    }
-
     public void GetHighlightColor()
     {
         Debug.Log("Getting pixels");
@@ -157,7 +75,8 @@ public class CameraScript : MonoBehaviour
         int coloredPixels = 0;
 
         int[] hues = new int[pixels.Length];
-        int[] saturation = new int[pixels.Length];
+        int[] saturations = new int[pixels.Length];
+        int[] values = new int[pixels.Length];
 
         foreach (var pixel in pixels)
         {
@@ -166,23 +85,31 @@ public class CameraScript : MonoBehaviour
 
             // if(s > 0.25f && v < 0.8f) {
                 hues[coloredPixels] = (int)(h * 360);
-                saturation[coloredPixels] = (int)(s * 100);
+                saturations[coloredPixels] = (int)(s * 100);
+                values[coloredPixels] = (int)(v * 100);
                 coloredPixels++;
             // }
         }
 
-        int[] hueOccurrencesCounted = IntValueCounter(hues, coloredPixels, 360);
-        Tuple<int, int> hueBounds = GetBoundsOfHighestDensityValues(hueOccurrencesCounted, 2);
+        int[] hueOccurrencesCounted = ArrayManager.IntValueCounter(hues, 360);
+        Tuple<int, int> hueBounds = ArrayManager.GetBoundsOfHighestDensityValues(hueOccurrencesCounted, 3.5f);
 
         Shader.SetGlobalFloat("_MinimumHue", hueBounds.Item1);
         Shader.SetGlobalFloat("_MaximumHue", hueBounds.Item2);
 
-        int[] satInBoundValues = RemoveOutOfBoundValues(saturation, hues, hueBounds.Item1, hueBounds.Item2);
-        int[] satOccurrencesCounted = IntValueCounter(satInBoundValues, satInBoundValues.Length, 100);
-        Tuple<int, int> satBounds = GetBoundsOfHighestDensityValues(satOccurrencesCounted, 5);
+        float removePercentage = 0.005f;
+
+        int[] satInBoundValues = ArrayManager.RemoveOutOfBoundValues(saturations, hues, hueBounds.Item1, hueBounds.Item2);
+        Tuple<int, int> satBounds = ArrayManager.GetBoundsFromPercentRange(satInBoundValues, removePercentage, 1 - removePercentage);
 
         Shader.SetGlobalFloat("_MinimumSaturation", satBounds.Item1);
         Shader.SetGlobalFloat("_MaximumSaturation", satBounds.Item2);
+
+        int[] valInBoundValues = ArrayManager.RemoveOutOfBoundValues(values, hues, hueBounds.Item1, hueBounds.Item2);
+        Tuple<int, int> valBounds = ArrayManager.GetBoundsFromPercentRange(valInBoundValues, removePercentage, 1 - removePercentage);
+
+        Shader.SetGlobalFloat("_MinimumValue", valBounds.Item1);
+        Shader.SetGlobalFloat("_MaximumValue", valBounds.Item2);
         
         rawImage.material.shader = customShader;
 
