@@ -40,7 +40,7 @@ public class ArrayManager : MonoBehaviour
         int min = input[(int)((input.Length-1) * lowerBoundPercent)];
         int max = input[(int)((input.Length-1) * higherBoundPercent)];
 
-        Debug.Log("Min: "+min+", Max: "+max);
+        Debug.Log("Median: "+input[(int)((input.Length-1) * 0.5f)]+", Min: "+min+", Max: "+max);
 
         return new Tuple<int, int>(min, max);
     }

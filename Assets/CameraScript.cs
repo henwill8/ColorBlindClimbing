@@ -92,12 +92,12 @@ public class CameraScript : MonoBehaviour
         }
 
         int[] hueOccurrencesCounted = ArrayManager.IntValueCounter(hues, 360);
-        Tuple<int, int> hueBounds = ArrayManager.GetBoundsOfHighestDensityValues(hueOccurrencesCounted, 3.5f);
+        Tuple<int, int> hueBounds = ArrayManager.GetBoundsOfHighestDensityValues(hueOccurrencesCounted, 4);
 
         Shader.SetGlobalFloat("_MinimumHue", hueBounds.Item1);
         Shader.SetGlobalFloat("_MaximumHue", hueBounds.Item2);
 
-        float removePercentage = 0.005f;
+        float removePercentage = 0.001f;
 
         int[] satInBoundValues = ArrayManager.RemoveOutOfBoundValues(saturations, hues, hueBounds.Item1, hueBounds.Item2);
         Tuple<int, int> satBounds = ArrayManager.GetBoundsFromPercentRange(satInBoundValues, removePercentage, 1 - removePercentage);
