@@ -16,9 +16,6 @@ public class CameraScript : MonoBehaviour
 
     public string deviceName;
 
-    public Slider minimumSlider;
-    public Slider maximumSlider;
-
     void Start()
     {
         rawImage = GetComponent<RawImage>();
@@ -66,6 +63,19 @@ public class CameraScript : MonoBehaviour
         // }
     }
 
+    public Tuple<int, int> GetBoundsFromHue(int hue)
+    {
+        int[] colorBounds = {5, 35, 60, 150, 250, 335, 355};
+
+        for(int i = 0; i < colorBounds.Length; i++) {
+            if((colorBounds[i] <= colorBounds[ArrayManager.KeepInCircularRange(0, colorBounds.Length-1, i+1)] && (hue >= colorBounds[i] && hue <= colorBounds[ArrayManager.KeepInCircularRange(0, colorBounds.Length-1, i+1)])) || (colorBounds[i] >= colorBounds[ArrayManager.KeepInCircularRange(0, colorBounds.Length-1, i+1)] && (hue >= colorBounds[i] || hue <= colorBounds[ArrayManager.KeepInCircularRange(0, colorBounds.Length-1, i+1)]))) {
+                return new Tuple<int, int>(colorBounds[i], colorBounds[ArrayManager.KeepInCircularRange(0, colorBounds.Length-1, i+1)]);
+            }
+        }
+
+        return new Tuple<int, int>(0, 0);
+    }
+
     public void GetHighlightColor()
     {
         Debug.Log("Getting pixels");
@@ -92,7 +102,8 @@ public class CameraScript : MonoBehaviour
         }
 
         int[] hueOccurrencesCounted = ArrayManager.IntValueCounter(hues, 360);
-        Tuple<int, int> hueBounds = ArrayManager.GetBoundsOfHighestDensityValues(hueOccurrencesCounted, 4);
+        // Tuple<int, int> hueBounds = ArrayManager.GetBoundsOfHighestDensityValues(hueOccurrencesCounted, GetHighestIndex(ArrayManager.hueOccurrencesCounted), 4);
+        Tuple<int, int> hueBounds = GetBoundsFromHue(ArrayManager.GetHighestIndex(hueOccurrencesCounted));
 
         Shader.SetGlobalFloat("_MinimumHue", hueBounds.Item1);
         Shader.SetGlobalFloat("_MaximumHue", hueBounds.Item2);

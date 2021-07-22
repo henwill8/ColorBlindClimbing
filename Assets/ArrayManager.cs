@@ -21,7 +21,7 @@ public class ArrayManager : MonoBehaviour
         int skipped = 0;
         
         for(int i = 0; i < input.Length; i++) {
-            if((min < max && (reference[i] > min && reference[i] < max)) || (min > max && (reference[i] > min || reference[i] < max))) {
+            if((min <= max && (reference[i] >= min && reference[i] <= max)) || (min >= max && (reference[i] >= min || reference[i] <= max))) {
                 array[i - skipped] = input[i];
             } else {
                 skipped++;
@@ -56,9 +56,8 @@ public class ArrayManager : MonoBehaviour
         return array;
     }
 
-    static public Tuple<int, int> GetBoundsOfHighestDensityValues(int[] array, float sensitivity)
+    static public int GetHighestIndex(int[] array)
     {
-        int[] bounds = new int[2];
         int highestValue = 0;
         int highestIndex = 0;
 
@@ -72,6 +71,13 @@ public class ArrayManager : MonoBehaviour
                 highestIndex = i;
             }
         }
+
+        return highestIndex;
+    }
+
+    static public Tuple<int, int> GetBoundsOfHighestDensityValues(int[] array, int highestIndex, float sensitivity)
+    {
+        int[] bounds = new int[2];
 
         for(int i = 0; i < 2; i++) {
             int iterations = 0;
