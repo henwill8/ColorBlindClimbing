@@ -15,6 +15,10 @@ public class CameraList : MonoBehaviour
         WebCamDevice[] devices = WebCamTexture.devices;
 
         for(int i = 0; i < devices.Length; i++) {
+            if(!devices[i].isFrontFacing && !EditorApplication.isPlaying) {
+                SelectCamera(devices[i]);
+                return;
+            }
             int value = i;
             GameObject newButton = Instantiate(ButtonPrefab);
             newButton.transform.SetParent(transform, false);
