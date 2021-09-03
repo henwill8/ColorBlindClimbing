@@ -16,6 +16,11 @@ public class CameraScript : MonoBehaviour
 
     public string deviceName;
 
+    public float hueSensitivity = 10;
+    
+    public Vector2 saturationRemoval = new Vector2(0.01f, 0.004f);
+    public Vector2 valueRemoval = new Vector2(0.004f, 0.005f);
+
     void Start()
     {
         rawImage = GetComponent<RawImage>();
@@ -34,6 +39,13 @@ public class CameraScript : MonoBehaviour
         if (!backCam.isPlaying)
             backCam.Play();
 
+        Shader.SetGlobalFloat("_HueSensitivity", hueSensitivity);
+
+        Shader.SetGlobalFloat("_SaturationMinRemoval", saturationRemoval.x);
+        Shader.SetGlobalFloat("_SaturationMaxRemoval", saturationRemoval.y);
+
+        Shader.SetGlobalFloat("_ValueMinRemoval", valueRemoval.x);
+        Shader.SetGlobalFloat("_ValueMaxRemoval", valueRemoval.y);
     }
 
     void Update()
@@ -58,9 +70,13 @@ public class CameraScript : MonoBehaviour
             rawImage.enabled = true;
         }
 
-        // if(Time.time > 10) {
-            // rawImage.material.shader = customShader;
-        // }
+        hueSensitivity = Shader.GetGlobalFloat("_HueSensitivity");
+
+        saturationRemoval.x = Shader.GetGlobalFloat("_SaturationMinRemoval");
+        saturationRemoval.y = Shader.GetGlobalFloat("_SaturationMaxRemoval");
+
+        valueRemoval.x = Shader.GetGlobalFloat("_ValueMinRemoval");
+        valueRemoval.y = Shader.GetGlobalFloat("_ValueMaxRemoval");
     }
 
     public Tuple<int, int> GetBoundsFromHue(int hue)
@@ -93,31 +109,27 @@ public class CameraScript : MonoBehaviour
             float h, s, v;
             Color.RGBToHSV(pixel, out h, out s, out v);
 
-            // if(s > 0.25f && v < 0.8f) {
-                hues[coloredPixels] = (int)(h * 360);
-                saturations[coloredPixels] = (int)(s * 100);
-                values[coloredPixels] = (int)(v * 100);
-                coloredPixels++;
-            // }
+            hues[coloredPixels] = (int)(h * 360);
+            saturations[coloredPixels] = (int)(s * 100);
+            values[coloredPixels] = (int)(v * 100);
+            coloredPixels++;
         }
 
         int[] hueOccurrencesCounted = ArrayManager.IntValueCounter(hues, 360);
-        // Tuple<int, int> hueBounds = ArrayManager.GetBoundsOfHighestDensityValues(hueOccurrencesCounted, GetHighestIndex(ArrayManager.hueOccurrencesCounted), 4);
-        Tuple<int, int> hueBounds = GetBoundsFromHue(ArrayManager.GetHighestIndex(hueOccurrencesCounted));
+        Tuple<int, int> hueBounds = ArrayManager.GetBoundsOfHighestDensityValues(hueOccurrencesCounted, ArrayManager.GetHighestIndex(hueOccurrencesCounted), hueSensitivity);
+        // Tuple<int, int> hueBounds = GetBoundsFromHue(ArrayManager.GetHighestIndex(hueOccurrencesCounted));
 
         Shader.SetGlobalFloat("_MinimumHue", hueBounds.Item1);
         Shader.SetGlobalFloat("_MaximumHue", hueBounds.Item2);
 
-        float removePercentage = 0.001f;
-
         int[] satInBoundValues = ArrayManager.RemoveOutOfBoundValues(saturations, hues, hueBounds.Item1, hueBounds.Item2);
-        Tuple<int, int> satBounds = ArrayManager.GetBoundsFromPercentRange(satInBoundValues, removePercentage, 1 - removePercentage);
+        Tuple<int, int> satBounds = ArrayManager.GetBoundsFromPercentRange(satInBoundValues, saturationRemoval.x, 1 - saturationRemoval.y);
 
         Shader.SetGlobalFloat("_MinimumSaturation", satBounds.Item1);
         Shader.SetGlobalFloat("_MaximumSaturation", satBounds.Item2);
 
         int[] valInBoundValues = ArrayManager.RemoveOutOfBoundValues(values, hues, hueBounds.Item1, hueBounds.Item2);
-        Tuple<int, int> valBounds = ArrayManager.GetBoundsFromPercentRange(valInBoundValues, removePercentage, 1 - removePercentage);
+        Tuple<int, int> valBounds = ArrayManager.GetBoundsFromPercentRange(valInBoundValues, valueRemoval.x, 1 - valueRemoval.y);
 
         Shader.SetGlobalFloat("_MinimumValue", valBounds.Item1);
         Shader.SetGlobalFloat("_MaximumValue", valBounds.Item2);

@@ -18,7 +18,7 @@ public class SliderToText : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        int value = (int)slider.value;
+        float value = ((float)((int)(slider.value * 1000)))/1000;
         text.text = value.ToString();
     }
 }

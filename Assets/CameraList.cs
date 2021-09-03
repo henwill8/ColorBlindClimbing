@@ -15,7 +15,7 @@ public class CameraList : MonoBehaviour
         WebCamDevice[] devices = WebCamTexture.devices;
 
         for(int i = 0; i < devices.Length; i++) {
-            if(!devices[i].isFrontFacing && !EditorApplication.isPlaying) {
+            if(!devices[i].isFrontFacing && !Application.isEditor) {
                 SelectCamera(devices[i]);
                 return;
             }

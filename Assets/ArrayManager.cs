@@ -33,14 +33,17 @@ public class ArrayManager : MonoBehaviour
         return array;
     }
 
-    static public Tuple<int, int> GetBoundsFromPercentRange(int[] input, float lowerBoundPercent, float higherBoundPercent)
+    static public Tuple<int, int> GetBoundsFromPercentRange(int[] input, float lowerBoundPercent, float upperBoundPercent)
     {
         Array.Sort(input);
 
-        int min = input[(int)((input.Length-1) * lowerBoundPercent)];
-        int max = input[(int)((input.Length-1) * higherBoundPercent)];
+        int lowerIndex = (int)((input.Length-1) * lowerBoundPercent);
+        int upperIndex = (int)((input.Length-1) * upperBoundPercent);
 
-        Debug.Log("Median: "+input[(int)((input.Length-1) * 0.5f)]+", Min: "+min+", Max: "+max);
+        int min = input[lowerIndex];
+        int max = input[upperIndex];
+
+        Debug.Log("Median: "+input[(int)((input.Length-1) * 0.5f)]+", Min: "+min+", Lower Index: "+lowerIndex+", Max: "+max+", Upper Index: "+upperIndex+", Inputs Length: "+input.Length);
 
         return new Tuple<int, int>(min, max);
     }

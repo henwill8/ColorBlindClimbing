@@ -13,7 +13,6 @@ public class ShaderSlider : MonoBehaviour
     void Start()
     {
         slider = gameObject.GetComponent<Slider>();
-        Shader.SetGlobalFloat(valueName, slider.value);
     }
 
     void Update()
