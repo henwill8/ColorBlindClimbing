@@ -21,6 +21,8 @@ public class CameraScript : MonoBehaviour
     public Vector2 saturationRemoval = new Vector2(0.01f, 0.004f);
     public Vector2 valueRemoval = new Vector2(0.004f, 0.005f);
 
+    public int[] hueOccurrencesCounted;
+
     void Start()
     {
         rawImage = GetComponent<RawImage>();
@@ -28,7 +30,6 @@ public class CameraScript : MonoBehaviour
         if (backCam == null)
             backCam = new WebCamTexture(deviceName);
 
-        rawImage.material.mainTexture = backCam;
         rawImage.material.shader = Shader.Find("Standard");
         rawImage.texture = backCam;
 
@@ -115,8 +116,8 @@ public class CameraScript : MonoBehaviour
             coloredPixels++;
         }
 
-        int[] hueOccurrencesCounted = ArrayManager.IntValueCounter(hues, 360);
-        Tuple<int, int> hueBounds = ArrayManager.GetBoundsOfHighestDensityValues(hueOccurrencesCounted, ArrayManager.GetHighestIndex(hueOccurrencesCounted), hueSensitivity);
+        hueOccurrencesCounted = ArrayManager.IntValueCounter(hues, 360);
+        Tuple<int, int> hueBounds = ArrayManager.GetBoundsOfHighestDensityValues(hueOccurrencesCounted, ArrayManager.GetHighestAverageIndex(hueOccurrencesCounted), hueSensitivity);
         // Tuple<int, int> hueBounds = GetBoundsFromHue(ArrayManager.GetHighestIndex(hueOccurrencesCounted));
 
         Shader.SetGlobalFloat("_MinimumHue", hueBounds.Item1);

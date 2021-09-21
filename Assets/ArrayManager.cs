@@ -59,7 +59,7 @@ public class ArrayManager : MonoBehaviour
         return array;
     }
 
-    static public int GetHighestIndex(int[] array)
+    static public int GetHighestAverageIndex(int[] array)
     {
         int highestValue = 0;
         int highestIndex = 0;
