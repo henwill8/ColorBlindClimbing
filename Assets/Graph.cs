@@ -25,27 +25,36 @@ public class Graph : MonoBehaviour
         
     }
 
-    public void CreateGraph() {//Make narrowing system based on bounds so that graph is easier to view
+    public void CreateGraph() {
         foreach (Transform child in transform) {
             GameObject.Destroy(child.gameObject);
         }
 
         int[] hues = cameraScript.hueOccurrencesCounted;
+        if(hues.Length == 0) return;
+
         int hueMin = (int)Shader.GetGlobalFloat("_MinimumHue");
         int hueMax = (int)Shader.GetGlobalFloat("_MaximumHue");
+        Debug.Log("Min and Max: "+hueMin+" "+hueMax);
 
-        int minShown = System.Math.Max(hueMin-25, 0);
-        int maxShown = System.Math.Min(hueMax+25, hues.Length-1);
+        int minShown = ArrayManager.KeepInCircularRange(0, hues.Length-1, hueMin-25);
+        int maxShown = ArrayManager.KeepInCircularRange(0, hues.Length-1, hueMax+25);
+        Debug.Log("Shown Range: "+minShown+" "+maxShown);
         int valuesShown = maxShown - minShown;
+        if(minShown > maxShown) {
+            valuesShown = maxShown + (hues.Length-1 - minShown);
+            maxShown += hues.Length;
+        }
+        Debug.Log("Values Shown: "+valuesShown);
         
         float lineLength = size.x / valuesShown;
         float maxHeight = hues.Max();
 
         for(int i = minShown; i < maxShown; i++) {
-            Vector2 startPoint = new Vector2((i-minShown)*lineLength - size.x/2, size.y * (hues[i] / maxHeight) - size.y/2);
-            Vector2 endPoint = new Vector2((i+1-minShown)*lineLength - size.x/2, size.y * (hues[i+1] / maxHeight) - size.y/2);
+            Vector2 startPoint = new Vector2((i-minShown)*lineLength - size.x/2, size.y * (hues[ArrayManager.KeepInCircularRange(0, hues.Length-1, i)] / maxHeight) - size.y/2);
+            Vector2 endPoint = new Vector2((i+1-minShown)*lineLength - size.x/2, size.y * (hues[ArrayManager.KeepInCircularRange(0, hues.Length-1, i+1)] / maxHeight) - size.y/2);
             CreateLine(startPoint, endPoint, transform, Color.HSVToRGB((float)i/360f, 1, 1));
-            if(i == hueMin || i == hueMax) {
+            if(ArrayManager.KeepInCircularRange(0, hues.Length-1, i) == hueMin || ArrayManager.KeepInCircularRange(0, hues.Length-1, i) == hueMax) {
                 CreateLine(new Vector2((i-minShown)*lineLength - size.x/2, -size.y/2), new Vector2((i-minShown)*lineLength - size.x/2, size.y/2), transform, new Color(0, 0, 0));
             }
         }
@@ -64,15 +73,4 @@ public class Graph : MonoBehaviour
         rt.anchoredPosition = a + dir * dist * 0.5f;
         rt.localEulerAngles = new Vector3(0, 0, (float)System.Math.Atan2(dir.y, dir.x) * 57.29578f);
     }
-
-    // float getXPos(int i) {
-    //     int offset = 9;
-    //     if(!npsLinesEnabled) offset = 20;
-    //     float pointDistance = (graphData.size.x - convertToGraphSizeX(offset)) / float(graphPoints.size()-1);
-    //     return i*pointDistance + convertToGraphSizeX(graphOffset.x);
-    // }
-
-    // float getYPos(int i) {
-    //     return ((float)graphPoints[i].second / (float)maxNoteCount) * graphData.size.y + convertToGraphSizeY(graphOffset.y);
-    // }
 }
