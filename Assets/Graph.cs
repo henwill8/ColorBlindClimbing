@@ -6,7 +6,6 @@ using System.Linq;
 
 public class Graph : MonoBehaviour
 {
-    public CameraScript cameraScript;
     public Material lineMaterial;
 
     public Vector2 size;
@@ -30,31 +29,40 @@ public class Graph : MonoBehaviour
             GameObject.Destroy(child.gameObject);
         }
 
-        int[] hues = cameraScript.hueOccurrencesCounted;
+        int[] hues = ColorBoundsHandler.hueOccurrencesCounted;
         if(hues.Length == 0) return;
+        
+        int maxIndex = ArrayManager.GetHighestAverageIndex(ColorBoundsHandler.hueOccurrencesCounted);
 
         int hueMin = (int)Shader.GetGlobalFloat("_MinimumHue");
         int hueMax = (int)Shader.GetGlobalFloat("_MaximumHue");
-        Debug.Log("Min and Max: "+hueMin+" "+hueMax);
+        // Debug.Log("Min and Max: "+hueMin+" "+hueMax);
 
         int minShown = ArrayManager.KeepInCircularRange(0, hues.Length-1, hueMin-25);
         int maxShown = ArrayManager.KeepInCircularRange(0, hues.Length-1, hueMax+25);
-        Debug.Log("Shown Range: "+minShown+" "+maxShown);
+        // Debug.Log("Shown Range: "+minShown+" "+maxShown);
+        
         int valuesShown = maxShown - minShown;
+
         if(minShown > maxShown) {
             valuesShown = maxShown + (hues.Length-1 - minShown);
             maxShown += hues.Length;
         }
-        Debug.Log("Values Shown: "+valuesShown);
+
+        // Debug.Log("Values Shown: "+valuesShown);
         
         float lineLength = size.x / valuesShown;
         float maxHeight = hues.Max();
 
         for(int i = minShown; i < maxShown; i++) {
-            Vector2 startPoint = new Vector2((i-minShown)*lineLength - size.x/2, size.y * (hues[ArrayManager.KeepInCircularRange(0, hues.Length-1, i)] / maxHeight) - size.y/2);
+            int circularRangeValue = ArrayManager.KeepInCircularRange(0, hues.Length-1, i);
+
+            Vector2 startPoint = new Vector2((i-minShown)*lineLength - size.x/2, size.y * (hues[circularRangeValue] / maxHeight) - size.y/2);
             Vector2 endPoint = new Vector2((i+1-minShown)*lineLength - size.x/2, size.y * (hues[ArrayManager.KeepInCircularRange(0, hues.Length-1, i+1)] / maxHeight) - size.y/2);
-            CreateLine(startPoint, endPoint, transform, Color.HSVToRGB((float)ArrayManager.KeepInCircularRange(0, hues.Length-1, i)/360f, 1, 1));
-            if(ArrayManager.KeepInCircularRange(0, hues.Length-1, i) == hueMin || ArrayManager.KeepInCircularRange(0, hues.Length-1, i) == hueMax) {
+            
+            CreateLine(startPoint, endPoint, transform, Color.HSVToRGB((float)circularRangeValue/360f, 1, 1));
+            
+            if(circularRangeValue == hueMin || circularRangeValue == hueMax || circularRangeValue == maxIndex) {
                 CreateLine(new Vector2((i-minShown)*lineLength - size.x/2, -size.y/2), new Vector2((i-minShown)*lineLength - size.x/2, size.y/2), transform, new Color(1, 1, 1));
             }
         }

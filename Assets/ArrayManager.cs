@@ -64,10 +64,12 @@ public class ArrayManager : MonoBehaviour
         int highestValue = 0;
         int highestIndex = 0;
 
+        int averageDistance = 0;
+
         for(int i = 0; i < array.Length; i++) {
             int count = 0;
-            for(int j = 0; j < 11; j++) {
-                count += array[KeepInCircularRange(0, array.Length-1, i-j+5)];
+            for(int j = 0; j < averageDistance * 2 + 1; j++) {
+                count += array[KeepInCircularRange(0, array.Length-1, i-j+averageDistance)];
             }
             if(count > highestValue) {
                 highestValue = count;
@@ -78,13 +80,17 @@ public class ArrayManager : MonoBehaviour
         return highestIndex;
     }
 
-    static public Tuple<int, int> GetBoundsOfHighestDensityValues(int[] array, int highestIndex, float sensitivity)
+    static public Tuple<int, int> GetBoundsOfHighestDensityValues(int[] array, float sensitivity)
     {
+        int highestIndex = ArrayManager.GetHighestAverageIndex(array);
         int[] bounds = new int[2];
 
         for(int i = 0; i < 2; i++) {
             int iterations = 0;
             int lowest = array.Max();
+
+            int flatIndex = highestIndex;
+            float flatSensitivity = 2;
 
             bounds[i] = highestIndex;
 
@@ -101,8 +107,19 @@ public class ArrayManager : MonoBehaviour
                     bounds[i] = indexValue;
                     lowest = array[indexValue];
                 }
-
-                if(array[indexValue] > array[bounds[i]] * sensitivity) break;
+                if(array[indexValue] > array[flatIndex] * flatSensitivity || array[indexValue] < array[flatIndex] * (1 / flatSensitivity)) {
+                    flatIndex = indexValue;
+                }
+                
+                if(System.Math.Abs(flatIndex - indexValue) > 10) {
+                    bounds[i] = flatIndex;
+                    Debug.Log("Hue is flat");
+                    break;
+                }
+                if(array[indexValue] > array[bounds[i]] * sensitivity) {
+                    Debug.Log("Hue is too large");
+                    break;
+                }
             }
         }
 

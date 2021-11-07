@@ -2354,6 +2354,49 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 680499711}
   m_CullTransparentMesh: 1
+--- !u!1 &696311639
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 696311641}
+  - component: {fileID: 696311640}
+  m_Layer: 0
+  m_Name: ColorSetHandler
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &696311640
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 696311639}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a006daf50d10eb94d8ed9aa38c6cb223, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &696311641
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 696311639}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 2.2371626, y: 2.4810104, z: 87.69795}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 5
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &698652721
 GameObject:
   m_ObjectHideFlags: 0
@@ -2402,7 +2445,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c556d9d69d342246ada94b1f7748c52, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cameraScript: {fileID: 948012376}
   lineMaterial: {fileID: 10306, guid: 0000000000000000f000000000000000, type: 0}
   size: {x: 600, y: 100}
   lineThickness: 5
@@ -3534,12 +3576,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3bba7e2c1b960f342a789e802d99a48c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  customShader: {fileID: 4800000, guid: c0c5059b063198c4b8b0b4bfe7d076f7, type: 3}
   deviceName: 
-  hueSensitivity: 10
-  saturationRemoval: {x: 0.01, y: 0.004}
-  valueRemoval: {x: 0.004, y: 0.005}
-  hueOccurrencesCounted: 
+  customShader: {fileID: 4800000, guid: c0c5059b063198c4b8b0b4bfe7d076f7, type: 3}
 --- !u!114 &948012377
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6127,6 +6165,49 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1571665089}
   m_CullTransparentMesh: 1
+--- !u!1 &1578667924
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1578667926}
+  - component: {fileID: 1578667925}
+  m_Layer: 0
+  m_Name: ColorBoundsHandler
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1578667925
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1578667924}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7a176558eaf0154291855c80a4276d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &1578667926
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1578667924}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 2.2371626, y: 2.4810104, z: 87.69795}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 6
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1592564643
 GameObject:
   m_ObjectHideFlags: 0
@@ -7351,7 +7432,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6429495730524262597, guid: acea4915caa81504e831844baad86720, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: GetHighlightColor
+      value: SelectColor
       objectReference: {fileID: 0}
     - target: {fileID: 6429495730524262597, guid: acea4915caa81504e831844baad86720, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_MethodName
