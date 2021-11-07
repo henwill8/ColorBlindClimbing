@@ -53,9 +53,9 @@ public class Graph : MonoBehaviour
         for(int i = minShown; i < maxShown; i++) {
             Vector2 startPoint = new Vector2((i-minShown)*lineLength - size.x/2, size.y * (hues[ArrayManager.KeepInCircularRange(0, hues.Length-1, i)] / maxHeight) - size.y/2);
             Vector2 endPoint = new Vector2((i+1-minShown)*lineLength - size.x/2, size.y * (hues[ArrayManager.KeepInCircularRange(0, hues.Length-1, i+1)] / maxHeight) - size.y/2);
-            CreateLine(startPoint, endPoint, transform, Color.HSVToRGB((float)i/360f, 1, 1));
+            CreateLine(startPoint, endPoint, transform, Color.HSVToRGB((float)ArrayManager.KeepInCircularRange(0, hues.Length-1, i)/360f, 1, 1));
             if(ArrayManager.KeepInCircularRange(0, hues.Length-1, i) == hueMin || ArrayManager.KeepInCircularRange(0, hues.Length-1, i) == hueMax) {
-                CreateLine(new Vector2((i-minShown)*lineLength - size.x/2, -size.y/2), new Vector2((i-minShown)*lineLength - size.x/2, size.y/2), transform, new Color(0, 0, 0));
+                CreateLine(new Vector2((i-minShown)*lineLength - size.x/2, -size.y/2), new Vector2((i-minShown)*lineLength - size.x/2, size.y/2), transform, new Color(1, 1, 1));
             }
         }
     }
