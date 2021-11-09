@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using System.Linq;
 
 public class Graph : MonoBehaviour
@@ -60,25 +59,11 @@ public class Graph : MonoBehaviour
             Vector2 startPoint = new Vector2((i-minShown)*lineLength - size.x/2, size.y * (hues[circularRangeValue] / maxHeight) - size.y/2);
             Vector2 endPoint = new Vector2((i+1-minShown)*lineLength - size.x/2, size.y * (hues[ArrayManager.KeepInCircularRange(0, hues.Length-1, i+1)] / maxHeight) - size.y/2);
             
-            CreateLine(startPoint, endPoint, transform, Color.HSVToRGB((float)circularRangeValue/360f, 1, 1));
+            Lines.CreateLine(startPoint, endPoint, transform, Color.HSVToRGB((float)circularRangeValue/360f, 1, 1), lineMaterial, lineThickness);
             
             if(circularRangeValue == hueMin || circularRangeValue == hueMax || circularRangeValue == maxIndex) {
-                CreateLine(new Vector2((i-minShown)*lineLength - size.x/2, -size.y/2), new Vector2((i-minShown)*lineLength - size.x/2, size.y/2), transform, new Color(1, 1, 1));
+                Lines.CreateLine(new Vector2((i-minShown)*lineLength - size.x/2, -size.y/2), new Vector2((i-minShown)*lineLength - size.x/2, size.y/2), transform, new Color(1, 1, 1), lineMaterial, lineThickness);
             }
         }
-    }
-
-    void CreateLine(Vector2 a, Vector2 b, Transform parent, Color color) {
-        GameObject go = new GameObject("line");
-        go.transform.SetParent(parent, false);
-        Image image = go.AddComponent<Image>();
-        image.material = lineMaterial;
-        image.color = color;
-        RectTransform rt = go.GetComponent<RectTransform>();
-        Vector2 dir = (b - a).normalized;
-        float dist = Vector2.Distance(a, b);
-        rt.sizeDelta = new Vector2(dist, lineThickness);
-        rt.anchoredPosition = a + dir * dist * 0.5f;
-        rt.localEulerAngles = new Vector3(0, 0, (float)System.Math.Atan2(dir.y, dir.x) * 57.29578f);
     }
 }

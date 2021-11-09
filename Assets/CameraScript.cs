@@ -16,6 +16,8 @@ public class CameraScript : MonoBehaviour
     
     public Shader customShader;
 
+    public Material lineMaterial;
+
     void Start()
     {
         rawImage = GetComponent<RawImage>();
@@ -45,13 +47,24 @@ public class CameraScript : MonoBehaviour
             Debug.Log("Camera Aspect Ratio is "+aspectRatio);
 
             RectTransform rt = GetComponent<RectTransform>();
-            float screenWidth = transform.parent.gameObject.GetComponent<RectTransform>().sizeDelta.x;
+            Vector2 screenSize = transform.parent.gameObject.GetComponent<RectTransform>().sizeDelta;
+
             if(backCam.videoRotationAngle % 180 == 0) {
-                rt.sizeDelta = new Vector2(screenWidth, screenWidth * aspectRatio);
+                rt.sizeDelta = new Vector2(screenSize.x, screenSize.x * aspectRatio);
             } else if((backCam.videoRotationAngle + 90) % 180 == 0) {
                 aspectRatio = (float)backCam.width / (float)backCam.height;
-                rt.sizeDelta = new Vector2(screenWidth * aspectRatio, screenWidth);
+                rt.sizeDelta = new Vector2(screenSize.x * aspectRatio, screenSize.x);
             }
+
+            Vector2 pos1 = new Vector2(-(rt.sizeDelta.x / 4), -(rt.sizeDelta.y / 4));
+            Vector2 pos2 = new Vector2(-(rt.sizeDelta.x / 4), rt.sizeDelta.y / 4);
+            Vector2 pos3 = new Vector2(rt.sizeDelta.x / 4, rt.sizeDelta.y / 4);
+            Vector2 pos4 = new Vector2(rt.sizeDelta.x / 4, -(rt.sizeDelta.y / 4));
+
+            Lines.CreateLine(pos1, pos2, transform.parent, new Color(1, 1, 1), lineMaterial, 7);
+            Lines.CreateLine(pos2, pos3, transform.parent, new Color(1, 1, 1), lineMaterial, 7);
+            Lines.CreateLine(pos3, pos4, transform.parent, new Color(1, 1, 1), lineMaterial, 7);
+            Lines.CreateLine(pos4, pos1, transform.parent, new Color(1, 1, 1), lineMaterial, 7);
 
             rawImage.enabled = true;
         }

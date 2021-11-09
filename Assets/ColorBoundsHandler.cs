@@ -42,12 +42,35 @@ public class ColorBoundsHandler : MonoBehaviour
         int[] colorBounds = {5, 35, 60, 150, 250, 335, 355};
 
         for(int i = 0; i < colorBounds.Length; i++) {
-            if((colorBounds[i] <= colorBounds[ArrayManager.KeepInCircularRange(0, colorBounds.Length-1, i+1)] && (hue >= colorBounds[i] && hue <= colorBounds[ArrayManager.KeepInCircularRange(0, colorBounds.Length-1, i+1)])) || (colorBounds[i] >= colorBounds[ArrayManager.KeepInCircularRange(0, colorBounds.Length-1, i+1)] && (hue >= colorBounds[i] || hue <= colorBounds[ArrayManager.KeepInCircularRange(0, colorBounds.Length-1, i+1)]))) {
-                return new Tuple<int, int>(colorBounds[i], colorBounds[ArrayManager.KeepInCircularRange(0, colorBounds.Length-1, i+1)]);
+            int firstBound = colorBounds[i];
+            int secondBound = colorBounds[ArrayManager.KeepInCircularRange(0, colorBounds.Length-1, i+1)];
+
+            if((firstBound <= secondBound && (hue >= firstBound && hue <= secondBound)) || (firstBound >= secondBound && (hue >= firstBound || hue <= secondBound))) {
+                return new Tuple<int, int>(firstBound, secondBound);
             }
         }
 
         return new Tuple<int, int>(0, 0);
+    }
+
+    static public float GetColorValueFromInt(Color pixel, int i) {
+        if(i == 0) {
+            return pixel.r;
+        } else if(i == 1) {
+            return pixel.g;
+        } else {
+            return pixel.b;
+        }
+    }
+
+    static public bool ColorIsGrayScale(Color color, float sensitivity) {
+        for(int i = 0; i < 3; i++) {
+            for(int j = 0; j < 3; j++) {
+                if(i == j) break;
+                if(System.Math.Abs(GetColorValueFromInt(color, i) - GetColorValueFromInt(color, j)) > sensitivity/255.0f) return false;
+            }
+        }
+        return true;
     }
 
     static public void GetHighlightColor(WebCamTexture camera)
@@ -62,8 +85,13 @@ public class ColorBoundsHandler : MonoBehaviour
         int[] saturations = new int[pixels.Length];
         int[] values = new int[pixels.Length];
 
+        float grayScaleSensitivity = Shader.GetGlobalFloat("_GrayScaleSensitivity");
+        Debug.Log(grayScaleSensitivity);
+
         foreach (var pixel in pixels)
         {
+            if(ColorIsGrayScale(pixel, grayScaleSensitivity)) break;
+
             float h, s, v;
             Color.RGBToHSV(pixel, out h, out s, out v);
 
