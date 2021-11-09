@@ -90,7 +90,7 @@ public class ColorBoundsHandler : MonoBehaviour
 
         foreach (var pixel in pixels)
         {
-            if(ColorIsGrayScale(pixel, grayScaleSensitivity)) break;
+            if(ColorIsGrayScale(pixel, grayScaleSensitivity)) continue;
 
             float h, s, v;
             Color.RGBToHSV(pixel, out h, out s, out v);
@@ -98,8 +98,15 @@ public class ColorBoundsHandler : MonoBehaviour
             hues[coloredPixels] = (int)(h * 360);
             saturations[coloredPixels] = (int)(s * 100);
             values[coloredPixels] = (int)(v * 100);
+
             coloredPixels++;
         }
+
+        Array.Resize(ref hues, coloredPixels);
+        Array.Resize(ref saturations, coloredPixels);
+        Array.Resize(ref values, coloredPixels);
+
+        Debug.Log("Colored Pixels: "+coloredPixels);
 
         hueOccurrencesCounted = ArrayManager.IntValueCounter(hues, 360);
         Tuple<int, int> hueBounds = ArrayManager.GetBoundsOfHighestDensityValues(hueOccurrencesCounted, hueSensitivity);
