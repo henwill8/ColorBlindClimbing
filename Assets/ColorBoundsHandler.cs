@@ -53,6 +53,21 @@ public class ColorBoundsHandler : MonoBehaviour
         return new Tuple<int, int>(0, 0);
     }
 
+    static public Tuple<int, int> GetBoundsFromPercentRange(int[] input, float lowerBoundPercent, float upperBoundPercent)
+    {
+        Array.Sort(input);
+
+        int lowerIndex = (int)((input.Length-1) * lowerBoundPercent);
+        int upperIndex = (int)((input.Length-1) * upperBoundPercent);
+
+        int min = input[lowerIndex];
+        int max = input[upperIndex];
+
+        Debug.Log("Median: "+input[(int)((input.Length-1) * 0.5f)]+", Min: "+min+", Lower Index: "+lowerIndex+", Max: "+max+", Upper Index: "+upperIndex+", Inputs Length: "+input.Length);
+
+        return new Tuple<int, int>(min, max);
+    }
+
     static public float GetColorValueFromInt(Color pixel, int i) {
         if(i == 0) {
             return pixel.r;
@@ -85,12 +100,11 @@ public class ColorBoundsHandler : MonoBehaviour
         int[] saturations = new int[pixels.Length];
         int[] values = new int[pixels.Length];
 
-        float grayScaleSensitivity = Shader.GetGlobalFloat("_GrayScaleSensitivity");
-        Debug.Log(grayScaleSensitivity);
+        // float grayScaleSensitivity = Shader.GetGlobalFloat("_GrayScaleSensitivity");
 
         foreach (var pixel in pixels)
         {
-            if(ColorIsGrayScale(pixel, grayScaleSensitivity)) continue;
+            if(ColorIsGrayScale(pixel, 20)) continue;
 
             float h, s, v;
             Color.RGBToHSV(pixel, out h, out s, out v);
@@ -108,7 +122,7 @@ public class ColorBoundsHandler : MonoBehaviour
 
         Debug.Log("Colored Pixels: "+coloredPixels);
 
-        hueOccurrencesCounted = ArrayManager.IntValueCounter(hues, 360);
+        hueOccurrencesCounted = ArrayManager.SmoothIntArray(ArrayManager.IntValueCounter(hues, 360), 5);
         Tuple<int, int> hueBounds = ArrayManager.GetBoundsOfHighestDensityValues(hueOccurrencesCounted, hueSensitivity);
         // Tuple<int, int> hueBounds = GetBoundsFromHue(ArrayManager.GetHighestIndex(hueOccurrencesCounted));
 
@@ -116,13 +130,13 @@ public class ColorBoundsHandler : MonoBehaviour
         Shader.SetGlobalFloat("_MaximumHue", hueBounds.Item2);
 
         int[] satInBoundValues = ArrayManager.RemoveOutOfBoundValues(saturations, hues, hueBounds.Item1, hueBounds.Item2);
-        Tuple<int, int> satBounds = ArrayManager.GetBoundsFromPercentRange(satInBoundValues, saturationRemoval.x, 1 - saturationRemoval.y);
+        Tuple<int, int> satBounds = GetBoundsFromPercentRange(satInBoundValues, saturationRemoval.x, 1 - saturationRemoval.y);
 
         Shader.SetGlobalFloat("_MinimumSaturation", satBounds.Item1);
         Shader.SetGlobalFloat("_MaximumSaturation", satBounds.Item2);
 
         int[] valInBoundValues = ArrayManager.RemoveOutOfBoundValues(values, hues, hueBounds.Item1, hueBounds.Item2);
-        Tuple<int, int> valBounds = ArrayManager.GetBoundsFromPercentRange(valInBoundValues, valueRemoval.x, 1 - valueRemoval.y);
+        Tuple<int, int> valBounds = GetBoundsFromPercentRange(valInBoundValues, valueRemoval.x, 1 - valueRemoval.y);
 
         Shader.SetGlobalFloat("_MinimumValue", valBounds.Item1);
         Shader.SetGlobalFloat("_MaximumValue", valBounds.Item2);

@@ -31,7 +31,7 @@ public class Graph : MonoBehaviour
         int[] hues = ColorBoundsHandler.hueOccurrencesCounted;
         if(hues.Length == 0) return;
         
-        int maxIndex = ArrayManager.GetHighestAverageIndex(ColorBoundsHandler.hueOccurrencesCounted);
+        int maxIndex = ArrayManager.GetHighestAverageIndex(ColorBoundsHandler.hueOccurrencesCounted, 0);
 
         int hueMin = (int)Shader.GetGlobalFloat("_MinimumHue");
         int hueMax = (int)Shader.GetGlobalFloat("_MaximumHue");

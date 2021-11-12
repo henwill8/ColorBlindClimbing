@@ -33,21 +33,6 @@ public class ArrayManager : MonoBehaviour
         return array;
     }
 
-    static public Tuple<int, int> GetBoundsFromPercentRange(int[] input, float lowerBoundPercent, float upperBoundPercent)
-    {
-        Array.Sort(input);
-
-        int lowerIndex = (int)((input.Length-1) * lowerBoundPercent);
-        int upperIndex = (int)((input.Length-1) * upperBoundPercent);
-
-        int min = input[lowerIndex];
-        int max = input[upperIndex];
-
-        Debug.Log("Median: "+input[(int)((input.Length-1) * 0.5f)]+", Min: "+min+", Lower Index: "+lowerIndex+", Max: "+max+", Upper Index: "+upperIndex+", Inputs Length: "+input.Length);
-
-        return new Tuple<int, int>(min, max);
-    }
-
     static public int[] IntValueCounter(int[] inputArray, int values)
     {
         int[] array = new int[values];
@@ -59,20 +44,39 @@ public class ArrayManager : MonoBehaviour
         return array;
     }
 
-    static public int GetHighestAverageIndex(int[] array)
+    static public int GetAverageValue(int[] array, int index, int range)
+    {
+        int totalValues = range * 2 + 1;
+        int count = 0;
+        
+        for(int i = 0; i < totalValues; i++) {
+            count += array[KeepInCircularRange(0, array.Length-1, index + i + range)];
+        }
+
+        return (int)(count / totalValues);
+    }
+
+    static public int[] SmoothIntArray(int[] array, int range)
+    {
+        int[] smoothedArray = new int[array.Length];
+
+        for(int i = 0; i < smoothedArray.Length; i++) {
+            smoothedArray[i] = GetAverageValue(array, i, range);
+        }
+
+        return smoothedArray;
+    }
+
+    static public int GetHighestAverageIndex(int[] array, int distance)
     {
         int highestValue = 0;
         int highestIndex = 0;
 
-        int averageDistance = 0;
-
         for(int i = 0; i < array.Length; i++) {
-            int count = 0;
-            for(int j = 0; j < averageDistance * 2 + 1; j++) {
-                count += array[KeepInCircularRange(0, array.Length-1, i-j+averageDistance)];
-            }
-            if(count > highestValue) {
-                highestValue = count;
+            int average = GetAverageValue(array, i, distance);
+
+            if(average > highestValue) {
+                highestValue = average;
                 highestIndex = i;
             }
         }
@@ -82,7 +86,7 @@ public class ArrayManager : MonoBehaviour
 
     static public Tuple<int, int> GetBoundsOfHighestDensityValues(int[] array, float sensitivity)
     {
-        int highestIndex = ArrayManager.GetHighestAverageIndex(array);
+        int highestIndex = ArrayManager.GetHighestAverageIndex(array, 0);
         int[] bounds = new int[2];
 
         for(int i = 0; i < 2; i++) {
@@ -90,7 +94,7 @@ public class ArrayManager : MonoBehaviour
             int lowest = array.Max();
 
             int flatIndex = highestIndex;
-            float flatSensitivity = 2;
+            float flatSensitivity = 1.5f;
 
             bounds[i] = highestIndex;
 
@@ -111,8 +115,8 @@ public class ArrayManager : MonoBehaviour
                     flatIndex = indexValue;
                 }
                 
-                if(System.Math.Abs(flatIndex - indexValue) > 10) {
-                    bounds[i] = flatIndex;
+                if(System.Math.Abs(flatIndex - indexValue) > 20 && System.Math.Abs(highestIndex - indexValue) > 10) {
+                    // bounds[i] = flatIndex;
                     Debug.Log("Hue is flat");
                     break;
                 }
