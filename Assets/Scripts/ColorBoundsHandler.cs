@@ -13,6 +13,8 @@ public class ColorBoundsHandler : MonoBehaviour
 
     static public int[] hueOccurrencesCounted;
 
+    static public int[] savedHueArrays;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -23,6 +25,8 @@ public class ColorBoundsHandler : MonoBehaviour
 
         Shader.SetGlobalFloat("_ValueMinRemoval", valueRemoval.x);
         Shader.SetGlobalFloat("_ValueMaxRemoval", valueRemoval.y);
+
+        savedHueArrays = new int[360];
     }
 
     // Update is called once per frame
@@ -45,7 +49,7 @@ public class ColorBoundsHandler : MonoBehaviour
             int firstBound = colorBounds[i];
             int secondBound = colorBounds[ArrayManager.KeepInCircularRange(0, colorBounds.Length-1, i+1)];
 
-            if((firstBound <= secondBound && (hue >= firstBound && hue <= secondBound)) || (firstBound >= secondBound && (hue >= firstBound || hue <= secondBound))) {
+            if(Utils.IsInCircularRange(hue, firstBound, secondBound)) {
                 return new Tuple<int, int>(firstBound, secondBound);
             }
         }
@@ -63,7 +67,7 @@ public class ColorBoundsHandler : MonoBehaviour
         int min = input[lowerIndex];
         int max = input[upperIndex];
 
-        Debug.Log("Median: "+input[(int)((input.Length-1) * 0.5f)]+", Min: "+min+", Lower Index: "+lowerIndex+", Max: "+max+", Upper Index: "+upperIndex+", Inputs Length: "+input.Length);
+        // Debug.Log("Median: "+input[(int)((input.Length-1) * 0.5f)]+", Min: "+min+", Lower Index: "+lowerIndex+", Max: "+max+", Upper Index: "+upperIndex+", Inputs Length: "+input.Length);
 
         return new Tuple<int, int>(min, max);
     }
@@ -104,7 +108,7 @@ public class ColorBoundsHandler : MonoBehaviour
 
         foreach (var pixel in pixels)
         {
-            if(ColorIsGrayScale(pixel, 20)) continue;
+            if(ColorIsGrayScale(pixel, 15)) continue;
 
             float h, s, v;
             Color.RGBToHSV(pixel, out h, out s, out v);
@@ -123,7 +127,13 @@ public class ColorBoundsHandler : MonoBehaviour
         Debug.Log("Colored Pixels: "+coloredPixels);
 
         hueOccurrencesCounted = ArrayManager.SmoothIntArray(ArrayManager.IntValueCounter(hues, 360), 5);
-        Tuple<int, int> hueBounds = ArrayManager.GetBoundsOfHighestDensityValues(hueOccurrencesCounted, hueSensitivity);
+        Tuple<int, int> hueBounds = ArrayManager.GetBoundsOfHighestDensityValues(ArrayManager.AddArrays(ArrayManager.NormalizeArray(hueOccurrencesCounted, 1000), savedHueArrays), hueSensitivity, ArrayManager.GetHighestAverageIndex(hueOccurrencesCounted, 0));
+        
+        int[] processedArray = new int[hueOccurrencesCounted.Length];
+        hueOccurrencesCounted.CopyTo(processedArray, 0);
+
+        processedArray = ArrayManager.ExtremifyArray(ArrayManager.NormalizeArray(ArrayManager.RemoveValuesOutOfIndexRange(processedArray, hueBounds.Item1, hueBounds.Item2), 1000), 0);
+        savedHueArrays = ArrayManager.MergeArrays(savedHueArrays, processedArray);
         // Tuple<int, int> hueBounds = GetBoundsFromHue(ArrayManager.GetHighestIndex(hueOccurrencesCounted));
 
         Shader.SetGlobalFloat("_MinimumHue", hueBounds.Item1);

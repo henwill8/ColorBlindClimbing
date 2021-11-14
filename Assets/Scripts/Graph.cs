@@ -9,6 +9,8 @@ public class Graph : MonoBehaviour
 
     public Vector2 size;
 
+    public bool showSavedArray;
+
     public float lineThickness;
 
     // Start is called before the first frame update
@@ -29,16 +31,20 @@ public class Graph : MonoBehaviour
         }
 
         int[] hues = ColorBoundsHandler.hueOccurrencesCounted;
+        if(showSavedArray) hues = ColorBoundsHandler.savedHueArrays;
+
         if(hues.Length == 0) return;
         
         int maxIndex = ArrayManager.GetHighestAverageIndex(ColorBoundsHandler.hueOccurrencesCounted, 0);
 
         int hueMin = (int)Shader.GetGlobalFloat("_MinimumHue");
         int hueMax = (int)Shader.GetGlobalFloat("_MaximumHue");
-        // Debug.Log("Min and Max: "+hueMin+" "+hueMax);
+        // Debug.Log("Min, MaxIndex, and Max: "+hueMin+" "+maxIndex+" "+hueMax);
 
-        int minShown = ArrayManager.KeepInCircularRange(0, hues.Length-1, hueMin-25);
-        int maxShown = ArrayManager.KeepInCircularRange(0, hues.Length-1, hueMax+25);
+        // int minShown = ArrayManager.KeepInCircularRange(0, hues.Length-1, hueMin-25);
+        // int maxShown = ArrayManager.KeepInCircularRange(0, hues.Length-1, hueMax+25);
+        int minShown = 0;
+        int maxShown = 360;
         // Debug.Log("Shown Range: "+minShown+" "+maxShown);
         
         int valuesShown = maxShown - minShown;
