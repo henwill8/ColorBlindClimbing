@@ -5,5 +5,6 @@ Highlights holds of a color so that climbers (mainly for indoor bouldering) can 
     - Make more accurate
     - Add saturation and value save
 - Change gray scale filter be more powerful in hue 0 (20 - (distToZero / 180)*15) make distToZero not linear? 
+- weighted hue pixels on distance from center, hold in separate array
 - Actual ui
 - Tutorial if there is no saved array
