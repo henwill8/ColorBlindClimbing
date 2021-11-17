@@ -31,7 +31,7 @@ public class Graph : MonoBehaviour
         }
 
         int[] hues = ColorBoundsHandler.hueOccurrencesCounted;
-        if(showSavedArray) hues = ColorBoundsHandler.savedHueArrays;
+        if(showSavedArray) hues = ColorBoundsHandler.savedHuesArray;
 
         if(hues.Length == 0) return;
         

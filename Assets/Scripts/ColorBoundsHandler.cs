@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using System;
+using System.IO;
 
 public class ColorBoundsHandler : MonoBehaviour
 {
@@ -13,7 +14,8 @@ public class ColorBoundsHandler : MonoBehaviour
 
     static public int[] hueOccurrencesCounted;
 
-    static public int[] savedHueArrays;
+    static public int[] savedHuesArray;
+    static public string savedHuesArrayFileName = "SavedHues.bin";
 
     // Start is called before the first frame update
     void Start()
@@ -26,7 +28,11 @@ public class ColorBoundsHandler : MonoBehaviour
         Shader.SetGlobalFloat("_ValueMinRemoval", valueRemoval.x);
         Shader.SetGlobalFloat("_ValueMaxRemoval", valueRemoval.y);
 
-        savedHueArrays = new int[360];
+        if(File.Exists(Path.Combine(Application.persistentDataPath, savedHuesArrayFileName))) {
+            savedHuesArray = FileUtils.ReadFileToIntArray(savedHuesArrayFileName);
+        } else {
+            savedHuesArray = new int[360];
+        }
     }
 
     // Update is called once per frame
@@ -127,13 +133,14 @@ public class ColorBoundsHandler : MonoBehaviour
         Debug.Log("Colored Pixels: "+coloredPixels);
 
         hueOccurrencesCounted = ArrayManager.SmoothIntArray(ArrayManager.IntValueCounter(hues, 360), 5);
-        Tuple<int, int> hueBounds = ArrayManager.GetBoundsOfHighestDensityValues(ArrayManager.AddArrays(ArrayManager.NormalizeArray(hueOccurrencesCounted, 1000), savedHueArrays), hueSensitivity, ArrayManager.GetHighestAverageIndex(hueOccurrencesCounted, 0));
+        Tuple<int, int> hueBounds = ArrayManager.GetBoundsOfHighestDensityValues(ArrayManager.AddArrays(ArrayManager.NormalizeArray(hueOccurrencesCounted, 1000), savedHuesArray), hueSensitivity, ArrayManager.GetHighestAverageIndex(hueOccurrencesCounted, 0));
         
         int[] processedArray = new int[hueOccurrencesCounted.Length];
         hueOccurrencesCounted.CopyTo(processedArray, 0);
 
         processedArray = ArrayManager.ExtremifyArray(ArrayManager.NormalizeArray(ArrayManager.RemoveValuesOutOfIndexRange(processedArray, hueBounds.Item1, hueBounds.Item2), 1000), 0);
-        savedHueArrays = ArrayManager.MergeArrays(savedHueArrays, processedArray);
+        savedHuesArray = ArrayManager.MergeArrays(savedHuesArray, processedArray);
+        FileUtils.IntArrayToFile(savedHuesArray, savedHuesArrayFileName);
         // Tuple<int, int> hueBounds = GetBoundsFromHue(ArrayManager.GetHighestIndex(hueOccurrencesCounted));
 
         Shader.SetGlobalFloat("_MinimumHue", hueBounds.Item1);
