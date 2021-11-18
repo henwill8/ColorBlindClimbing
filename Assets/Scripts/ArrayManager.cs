@@ -5,59 +5,66 @@ using System.Linq;
 using System;
 
 public class ArrayManager : MonoBehaviour
-{  
-    static public int KeepInCircularRange(int min, int max, int value)
+{
+    static public int FindTopOfNearestHill(int[] array, int index)
     {
-        while(value > max || value < min) {
-            if(value > max) value -= max - min + 1;
-            if(value < min) value += max - min + 1;
-        }
-        return value;
-    }
+        // int checkDistance = 1;
+        // // int lastValueLeft = array[index];
+        // int lastValueRight = array[index];
 
-    static public int[] RemoveOutOfBoundValues(int[] input, int[] reference, int min, int max)
+        // while(checkDistance < 50) {//Make sure to add rounded index to make it not die
+        //     Debug.Log(checkDistance + " "+index);
+        //     // if(array[index-checkDistance] > lastValueLeft) {
+        //     //     lastValueLeft = array[index-checkDistance];
+        //     // Debug.Log(lastValueLeft);
+        //     // } else if(array[index-checkDistance] > array[index]*1.25f) {
+        //     //     return index-checkDistance;
+        //     // }
+        //     Debug.Log(array[index+checkDistance]+" "+lastValueRight);
+        //     if(array[index+checkDistance] > lastValueRight) {
+        //         lastValueRight = array[index+checkDistance];
+        //     } else if(array[index+checkDistance] > array[index]*1.25f) {
+        //         return index+checkDistance;
+        //     }
+
+        //     checkDistance++;
+        // }
+        // Debug.Log("BADDDD");
+        return index;
+    }//Likely get rid of this
+
+    static public int[] RemoveOutOfBoundValues(int[] array, int[] reference, int min, int max)
     {
-        int[] array = new int[input.Length];
+        int[] newArray = new int[array.Length];
         int skipped = 0;
         
-        for(int i = 0; i < input.Length; i++) {
+        for(int i = 0; i < array.Length; i++) {
             if((min <= max && (reference[i] >= min && reference[i] <= max)) || (min >= max && (reference[i] >= min || reference[i] <= max))) {
-                array[i - skipped] = input[i];
+                newArray[i - skipped] = array[i];
             } else {
                 skipped++;
             }
         }
         
-        Array.Resize(ref array, array.Length - skipped);
+        Array.Resize(ref newArray, newArray.Length - skipped);
 
-        return array;
+        return newArray;
     }
 
-    static public int[] IntValueCounter(int[] inputArray, int values)
+    static public int[] IntValueCounter(int[] array, int values)
     {
-        int[] array = new int[values];
+        int[] newArray = new int[values];
 
-        for(int i = 0; i < inputArray.Length; i++) {
-            array[inputArray[i]]++;
+        for(int i = 0; i < array.Length; i++) {
+            newArray[array[i]]++;
         }
 
-        return array;
-    }
-
-    static public int GetAverageValue(int[] array, int index, int range)
-    {
-        int totalValues = range * 2 + 1;
-        int count = 0;
-        
-        for(int i = 0; i < totalValues; i++) {
-            count += array[KeepInCircularRange(0, array.Length-1, index + i + range)];
-        }
-
-        return (int)(count / totalValues);
+        return newArray;
     }
 
     static public int[] ExtremifyArray(int[] array, float extremity)
     {
+        int[] newArray = new int[array.Length];
         int max = array.Max();
         int min = array.Min();
         int midpoint = (max + min)/2;
@@ -67,24 +74,25 @@ public class ArrayManager : MonoBehaviour
 
         for(int i = 0; i < array.Length; i++) {
             if(array[i] > midpoint) {
-                array[i] = (int)Mathf.Lerp(array[i], max, extremity);
+                newArray[i] = (int)Mathf.Lerp(array[i], max, extremity);
             } else {
-                array[i] = 0;
+                newArray[i] = 0;
             }
         }
 
-        return array;
+        return newArray;
     }
 
     static public int[] NormalizeArray(int[] array, int maxValue)
     {
+        int[] newArray = new int[array.Length];
         int max = array.Max();
         
         for(int i = 0; i < array.Length; i++) {
-            array[i] = (int)(((float)array[i] / (float)max) * maxValue);
+            newArray[i] = (int)(((float)array[i] / (float)max) * maxValue);
         }
 
-        return array;
+        return newArray;
     }
 
     static public int[] MergeArrays(int[] arrayA, int[] arrayB)
@@ -119,13 +127,17 @@ public class ArrayManager : MonoBehaviour
 
     static public int[] RemoveValuesOutOfIndexRange(int[] array, int minIndex, int maxIndex)
     {
+        int[] newArray = new int[array.Length];
+
         for(int i = 0; i < array.Length; i++) {
             if(!Utils.IsInCircularRange(i, minIndex, maxIndex)) {
-                array[i] = 0;
+                newArray[i] = 0;
+            } else {
+                newArray[i] = array[i];
             }
         }
 
-        return array;
+        return newArray;
     }
 
     static public int[] SmoothIntArray(int[] array, int range)
@@ -139,7 +151,21 @@ public class ArrayManager : MonoBehaviour
         return smoothedArray;
     }
 
-    static public int GetHighestAverageIndex(int[] array, int distance)
+    static public int GetAverageValue(int[] array, int index, int range)
+    {
+        if(range == 0) return array[index];
+
+        int totalValues = range * 2 + 1;
+        int count = 0;
+        
+        for(int i = 0; i < totalValues; i++) {
+            count += array[Utils.KeepInCircularRange(0, array.Length-1, index + i + range)];
+        }
+
+        return (int)(count / totalValues);
+    }
+
+    static public int GetHighestAverageIndex(int[] array, int distance = 0)
     {
         int highestValue = 0;
         int highestIndex = 0;
@@ -177,7 +203,7 @@ public class ArrayManager : MonoBehaviour
                     iterations++;
                 }
 
-                int indexValue = KeepInCircularRange(0, array.Length-1, highestIndex + iterations);
+                int indexValue = Utils.KeepInCircularRange(0, array.Length-1, highestIndex + iterations);
 
                 if(array[indexValue] < lowest || lowest == array.Max()) {
                     bounds[i] = indexValue;
@@ -192,7 +218,7 @@ public class ArrayManager : MonoBehaviour
                     Debug.Log("Hue is flat");
                     break;
                 }
-                if(array[indexValue] > array[bounds[i]] * sensitivity) {
+                if(array[indexValue] > array[bounds[i]] * sensitivity) {//This seems to be finding the top of the nearest mountain better than the function I specifically wrote for it does?
                     Debug.Log("Hue is too large");
                     break;
                 }

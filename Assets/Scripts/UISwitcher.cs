@@ -32,7 +32,7 @@ public class UISwitcher : MonoBehaviour
 
     void Switch() {
         index++;
-        index = ArrayManager.KeepInCircularRange(0, objects.Length-1, index);
+        index = Utils.KeepInCircularRange(0, objects.Length-1, index);
         Debug.Log("Switching to page "+(index+1));
 
         for(int i = 0; i < objects.Length; i++) {

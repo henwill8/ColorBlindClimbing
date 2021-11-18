@@ -41,8 +41,8 @@ public class Graph : MonoBehaviour
         int hueMax = (int)Shader.GetGlobalFloat("_MaximumHue");
         // Debug.Log("Min, MaxIndex, and Max: "+hueMin+" "+maxIndex+" "+hueMax);
 
-        // int minShown = ArrayManager.KeepInCircularRange(0, hues.Length-1, hueMin-25);
-        // int maxShown = ArrayManager.KeepInCircularRange(0, hues.Length-1, hueMax+25);
+        // int minShown = Utils.KeepInCircularRange(0, hues.Length-1, hueMin-25);
+        // int maxShown = Utils.KeepInCircularRange(0, hues.Length-1, hueMax+25);
         int minShown = 0;
         int maxShown = 360;
         // Debug.Log("Shown Range: "+minShown+" "+maxShown);
@@ -60,10 +60,10 @@ public class Graph : MonoBehaviour
         float maxHeight = hues.Max();
 
         for(int i = minShown; i < maxShown; i++) {
-            int circularRangeValue = ArrayManager.KeepInCircularRange(0, hues.Length-1, i);
+            int circularRangeValue = Utils.KeepInCircularRange(0, hues.Length-1, i);
 
             Vector2 startPoint = new Vector2((i-minShown)*lineLength - size.x/2, size.y * (hues[circularRangeValue] / maxHeight) - size.y/2);
-            Vector2 endPoint = new Vector2((i+1-minShown)*lineLength - size.x/2, size.y * (hues[ArrayManager.KeepInCircularRange(0, hues.Length-1, i+1)] / maxHeight) - size.y/2);
+            Vector2 endPoint = new Vector2((i+1-minShown)*lineLength - size.x/2, size.y * (hues[Utils.KeepInCircularRange(0, hues.Length-1, i+1)] / maxHeight) - size.y/2);
             
             Lines.CreateLine(startPoint, endPoint, transform, Color.HSVToRGB((float)circularRangeValue/360f, 1, 1), lineMaterial, lineThickness);
             

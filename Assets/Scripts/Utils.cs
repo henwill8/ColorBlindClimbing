@@ -15,6 +15,15 @@ public class Utils
         return false;
     }
 
+    static public int KeepInCircularRange(int min, int max, int value)
+    {
+        while(value > max || value < min) {
+            if(value > max) value -= max - min + 1;
+            if(value < min) value += max - min + 1;
+        }
+        return value;
+    }
+
     static public float EaseInOutExpo(float p) {
         if (p == 0.0 || p == 1.0) {
             return p;
