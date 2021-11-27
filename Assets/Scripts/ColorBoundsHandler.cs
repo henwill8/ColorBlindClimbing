@@ -139,10 +139,7 @@ public class ColorBoundsHandler : MonoBehaviour
         Array.Resize(ref saturations, coloredPixels);
         Array.Resize(ref values, coloredPixels);
 
-        Debug.Log("Colored Pixels: "+coloredPixels);
-
-        hueOccurrencesCounted = ArrayManager.SmoothIntArray(ArrayManager.IntValueCounter(hues, 360), 5);
-        hueOccurrencesCounted = ArrayManager.AddArrays(ArrayManager.SmoothIntArray(amplification, 5), hueOccurrencesCounted);
+        hueOccurrencesCounted = ArrayManager.SmoothIntArray(ArrayManager.AddArrays(amplification, ArrayManager.IntValueCounter(hues, 360)), 5);
         // int maxIndex = ArrayManager.FindTopOfNearestHill(hueOccurrencesCounted, ArrayManager.GetHighestAverageIndex(ArrayManager.AddArrays(ArrayManager.SmoothIntArray(amplification, 5), hueOccurrencesCounted)));
         int maxIndex = ArrayManager.GetHighestAverageIndex(hueOccurrencesCounted);
         int[] normalizedArray = ArrayManager.AddArrays(ArrayManager.NormalizeArray(hueOccurrencesCounted, 1000), savedHuesArray);
