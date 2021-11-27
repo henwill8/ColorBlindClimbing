@@ -30,12 +30,12 @@ public class Graph : MonoBehaviour
             GameObject.Destroy(child.gameObject);
         }
 
-        int[] hues = ColorBoundsHandler.hueOccurrencesCounted;
+        int[] hues = ColorBoundsHandler.smoothedHues;
         if(showSavedArray) hues = ColorBoundsHandler.savedHuesArray;
 
         if(hues.Length == 0) return;
         
-        int maxIndex = ArrayManager.GetHighestAverageIndex(ColorBoundsHandler.hueOccurrencesCounted, 0);
+        int maxIndex = ArrayManager.GetHighestAverageIndex(ColorBoundsHandler.smoothedHues, 0);
 
         int hueMin = (int)Shader.GetGlobalFloat("_MinimumHue");
         int hueMax = (int)Shader.GetGlobalFloat("_MaximumHue");

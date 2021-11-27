@@ -73,7 +73,7 @@ public class ArrayManager : MonoBehaviour
         // Debug.Log(max+" "+min+" "+midpoint);
 
         for(int i = 0; i < array.Length; i++) {
-            if(array[i] > midpoint) {
+            if(array[i] > quaterpoint) {
                 newArray[i] = (int)Mathf.Lerp(array[i], max, extremity);
             } else {
                 newArray[i] = 0;
@@ -182,7 +182,7 @@ public class ArrayManager : MonoBehaviour
         return highestIndex;
     }
 
-    static public Tuple<int, int> GetBoundsOfHighestDensityValues(int[] array, float sensitivity, int highestIndex = -1)
+    static public Tuple<int, int> GetBoundsOfHighestDensityValues(int[] array, float sensitivity, int flatDistance = 10, float flatSensitivity = 1.5f, bool keepCircular = true, int highestIndex = -1, int maxIterations = 100)
     {
         if(highestIndex == -1) highestIndex = ArrayManager.GetHighestAverageIndex(array, 0);
         int[] bounds = new int[2];
@@ -192,11 +192,10 @@ public class ArrayManager : MonoBehaviour
             int lowest = array.Max();
 
             int flatIndex = highestIndex;
-            float flatSensitivity = 1.25f;
 
             bounds[i] = highestIndex;
 
-            while(iterations > -100 && iterations < 100) {
+            while(iterations > -maxIterations && iterations < maxIterations) {
                 if(i == 0) {
                     iterations--;
                 } else {
@@ -204,16 +203,20 @@ public class ArrayManager : MonoBehaviour
                 }
 
                 int indexValue = Utils.KeepInCircularRange(0, array.Length-1, highestIndex + iterations);
+                if(!keepCircular && (highestIndex + iterations <= 0 || highestIndex + iterations >= array.Length-1)) {
+                    bounds[i] = indexValue;
+                    break;
+                }
 
                 if(array[indexValue] < lowest || lowest == array.Max()) {
                     bounds[i] = indexValue;
                     lowest = array[indexValue];
                 }
-                if(array[indexValue] > array[flatIndex] * flatSensitivity || array[indexValue] < array[flatIndex] * (1 / flatSensitivity)) {
+                if(array[indexValue] > array[flatIndex] * flatSensitivity || array[indexValue] < array[flatIndex] * (1.0f / flatSensitivity)) {
                     flatIndex = indexValue;
                 }
                 
-                if(System.Math.Abs(flatIndex - indexValue) > 10 && System.Math.Abs(highestIndex - indexValue) > 10) {
+                if(System.Math.Abs(flatIndex - indexValue) > flatDistance && System.Math.Abs(highestIndex - indexValue) > flatDistance) {
                     // bounds[i] = flatIndex;
                     Debug.Log("Hue is flat");
                     break;

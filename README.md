@@ -3,6 +3,7 @@ Highlights holds of a color so that climbers (mainly for indoor bouldering) can 
 # todo
 - Global color saves
     - Make more accurate between different hold hues
+- Gray Scale Filter (for choosing hold bounds and for after) needs adjusting
 - Saturation and value use bounds function but without flat stopping
 - Actual ui
 - Tutorial if there is no saved array

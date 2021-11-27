@@ -12,7 +12,7 @@ public class ColorBoundsHandler : MonoBehaviour
     static public Vector2 saturationRemoval = new Vector2(0.01f, 0.004f);
     static public Vector2 valueRemoval = new Vector2(0.004f, 0.005f);
 
-    static public int[] hueOccurrencesCounted;
+    static public int[] smoothedHues;
 
     static public int[] savedHuesArray;
     static public string savedHuesArrayFileName = "SavedHues.bin";
@@ -46,37 +46,6 @@ public class ColorBoundsHandler : MonoBehaviour
         valueRemoval.x = Shader.GetGlobalFloat("_ValueMinRemoval");
         valueRemoval.y = Shader.GetGlobalFloat("_ValueMaxRemoval");
     }
-    
-    static private Tuple<int, int> GetBoundsFromHue(int hue)
-    {
-        int[] colorBounds = {5, 35, 60, 150, 250, 335, 355};
-
-        for(int i = 0; i < colorBounds.Length; i++) {
-            int firstBound = colorBounds[i];
-            int secondBound = colorBounds[Utils.KeepInCircularRange(0, colorBounds.Length-1, i+1)];
-
-            if(Utils.IsInCircularRange(hue, firstBound, secondBound)) {
-                return new Tuple<int, int>(firstBound, secondBound);
-            }
-        }
-
-        return new Tuple<int, int>(0, 0);
-    }
-
-    static public Tuple<int, int> GetBoundsFromPercentRange(int[] input, float lowerBoundPercent, float upperBoundPercent)
-    {
-        Array.Sort(input);
-
-        int lowerIndex = (int)((input.Length-1) * lowerBoundPercent);
-        int upperIndex = (int)((input.Length-1) * upperBoundPercent);
-
-        int min = input[lowerIndex];
-        int max = input[upperIndex];
-
-        // Debug.Log("Median: "+input[(int)((input.Length-1) * 0.5f)]+", Min: "+min+", Lower Index: "+lowerIndex+", Max: "+max+", Upper Index: "+upperIndex+", Inputs Length: "+input.Length);
-
-        return new Tuple<int, int>(min, max);
-    }
 
     static public float GetColorValueFromInt(Color pixel, int i) {
         if(i == 0) {
@@ -108,13 +77,15 @@ public class ColorBoundsHandler : MonoBehaviour
         Vector2 centerPosition = new Vector2(camera.width / 2, camera.height / 2);
         float maxDistance = Vector2.Distance(Vector2.zero, centerPosition) / 2;
 
-        int coloredPixels = 0;
+        // int coloredPixels = 0;
 
-        int[] hues = new int[pixels.Length];
-        int[] saturations = new int[pixels.Length];
-        int[] values = new int[pixels.Length];
+        // int[] hues = new int[pixels.Length];
+        // int[] saturations = new int[pixels.Length];
+        // int[] values = new int[pixels.Length];
 
-        int[] amplification = new int[360];
+        int[] weightedHues = new int[360];
+        int[] weightedSaturations = new int[101];
+        int[] weightedValues = new int[101];
 
         for(int i = 0; i < pixels.Length; i++) {
             Vector2 pixelPosition = new Vector2(i % lineLength, i / lineLength);
@@ -128,48 +99,44 @@ public class ColorBoundsHandler : MonoBehaviour
             float h, s, v;
             Color.RGBToHSV(pixels[i], out h, out s, out v);
 
-            amplification[(int)(h * 360)] += (int)((1.0f - Math.Min(Vector2.Distance(pixelPosition, centerPosition) / maxDistance, 1)) * 4);//Lower for actual use?
+            int weightAmount = (int)((1.0f - Math.Min(Vector2.Distance(pixelPosition, centerPosition) / maxDistance, 1)) * 10);
 
-            hues[coloredPixels] = (int)(h * 360);
-            saturations[coloredPixels] = (int)(s * 100);
-            values[coloredPixels] = (int)(v * 100);
+            weightedHues[(int)(h * 360)] += weightAmount;
+            weightedSaturations[(int)(s * 100)] += weightAmount;
+            weightedValues[(int)(v * 100)] += weightAmount;
 
-            coloredPixels++;
+            // hues[coloredPixels] = (int)(h * 360); // I dont think a base against the amplification is needed
+            // saturations[coloredPixels] = (int)(s * 100);
+            // values[coloredPixels] = (int)(v * 100);
+
+            // coloredPixels++;
         }
 
-        Array.Resize(ref hues, coloredPixels);
-        Array.Resize(ref saturations, coloredPixels);
-        Array.Resize(ref values, coloredPixels);
+        // Array.Resize(ref hues, coloredPixels);
+        // Array.Resize(ref saturations, coloredPixels);
+        // Array.Resize(ref values, coloredPixels);
 
-        hueOccurrencesCounted = ArrayManager.SmoothIntArray(ArrayManager.AddArrays(amplification, ArrayManager.IntValueCounter(hues, 360)), 5);
-        // int maxIndex = ArrayManager.FindTopOfNearestHill(hueOccurrencesCounted, ArrayManager.GetHighestAverageIndex(ArrayManager.AddArrays(ArrayManager.SmoothIntArray(amplification, 5), hueOccurrencesCounted)));
-        int maxIndex = ArrayManager.GetHighestAverageIndex(hueOccurrencesCounted);
-        int[] normalizedArray = ArrayManager.AddArrays(ArrayManager.NormalizeArray(hueOccurrencesCounted, 1000), savedHuesArray);
-        Tuple<int, int> hueBounds = ArrayManager.GetBoundsOfHighestDensityValues(normalizedArray, hueSensitivity, maxIndex);
+        // hueOccurrencesCounted = ArrayManager.SmoothIntArray(ArrayManager.AddArrays(weightedHues, ArrayManager.IntValueCounter(hues, 360)), 5);
+        smoothedHues = ArrayManager.SmoothIntArray(weightedHues, 5);
+        int maxIndex = ArrayManager.GetHighestAverageIndex(smoothedHues);
+        int[] normalizedArray = ArrayManager.NormalizeArray(smoothedHues, 1000);
+        Tuple<int, int> hueBounds = ArrayManager.GetBoundsOfHighestDensityValues(ArrayManager.AddArrays(normalizedArray, savedHuesArray), hueSensitivity, 10, 1.25f, true, maxIndex);
 
-        int[] processedArray = ArrayManager.ExtremifyArray(ArrayManager.NormalizeArray(ArrayManager.RemoveValuesOutOfIndexRange(hueOccurrencesCounted, hueBounds.Item1, hueBounds.Item2), 1000), 0.5f);
+        int[] processedArray = ArrayManager.ExtremifyArray(ArrayManager.RemoveValuesOutOfIndexRange(normalizedArray, hueBounds.Item1, hueBounds.Item2), 0);
         savedHuesArray = ArrayManager.MergeArrays(savedHuesArray, processedArray);
         FileUtils.IntArrayToFile(savedHuesArray, savedHuesArrayFileName);
-        // Tuple<int, int> hueBounds = GetBoundsFromHue(ArrayManager.GetHighestIndex(hueOccurrencesCounted));
 
         Shader.SetGlobalFloat("_GrayScaleSensitivity", Math.Max(5, Math.Max((-1.0f/300.0f)*(float)Math.Pow(maxIndex-20, 2)+35, (-1.0f/300.0f)*(float)Math.Pow(maxIndex-415, 2)+35)));
-
         Shader.SetGlobalFloat("_MinimumHue", hueBounds.Item1);
         Shader.SetGlobalFloat("_MaximumHue", hueBounds.Item2);
 
-        int[] satInBoundValues = ArrayManager.RemoveOutOfBoundValues(saturations, hues, hueBounds.Item1, hueBounds.Item2);
-        Tuple<int, int> satBounds = GetBoundsFromPercentRange(satInBoundValues, saturationRemoval.x, 1 - saturationRemoval.y);
-
+        Tuple<int, int> satBounds = ArrayManager.GetBoundsOfHighestDensityValues(ArrayManager.SmoothIntArray(weightedSaturations, 5), 4, 15, 2.0f, false);
         Shader.SetGlobalFloat("_MinimumSaturation", satBounds.Item1);
         Shader.SetGlobalFloat("_MaximumSaturation", satBounds.Item2);
 
-        int[] valInBoundValues = ArrayManager.RemoveOutOfBoundValues(values, hues, hueBounds.Item1, hueBounds.Item2);
-        Tuple<int, int> valBounds = GetBoundsFromPercentRange(valInBoundValues, valueRemoval.x, 1 - valueRemoval.y);
-
+        Tuple<int, int> valBounds = ArrayManager.GetBoundsOfHighestDensityValues(ArrayManager.SmoothIntArray(weightedValues, 5), 4, 10, 1.5f, false);
         Shader.SetGlobalFloat("_MinimumValue", valBounds.Item1);
         Shader.SetGlobalFloat("_MaximumValue", valBounds.Item2);
-
-        // Debug.Log("Done!");
     }
 
     static public void DeleteSavedHues()
