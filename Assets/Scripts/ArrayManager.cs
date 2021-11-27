@@ -192,7 +192,7 @@ public class ArrayManager : MonoBehaviour
             int lowest = array.Max();
 
             int flatIndex = highestIndex;
-            float flatSensitivity = 1.5f;
+            float flatSensitivity = 1.25f;
 
             bounds[i] = highestIndex;
 
@@ -213,8 +213,8 @@ public class ArrayManager : MonoBehaviour
                     flatIndex = indexValue;
                 }
                 
-                if(System.Math.Abs(flatIndex - indexValue) > 20 && System.Math.Abs(highestIndex - indexValue) > 10) {
-                    bounds[i] = flatIndex;
+                if(System.Math.Abs(flatIndex - indexValue) > 10 && System.Math.Abs(highestIndex - indexValue) > 10) {
+                    // bounds[i] = flatIndex;
                     Debug.Log("Hue is flat");
                     break;
                 }

@@ -106,7 +106,7 @@ public class ColorBoundsHandler : MonoBehaviour
         Color[] pixels = camera.GetPixels(0, 0, lineLength, lines);
 
         Vector2 centerPosition = new Vector2(camera.width / 2, camera.height / 2);
-        float maxDistance = Vector2.Distance(Vector2.zero, centerPosition) / 1.5f;
+        float maxDistance = Vector2.Distance(Vector2.zero, centerPosition) / 2;
 
         int coloredPixels = 0;
 
@@ -120,13 +120,15 @@ public class ColorBoundsHandler : MonoBehaviour
             Vector2 pixelPosition = new Vector2(i % lineLength, i / lineLength);
             // Debug.Log(pixelPosition);
 
-            int grayScaleFiltering = Math.Max(5, Math.Max((-1/25)*(i*i)+20, (-1/25)*((i-359)*(i-359))+20));//Exponential function around hue 0
+            float quadraticOne = (-1.0f/25.0f)*(float)Math.Pow(i, 2)+20;
+            float quadraticTwo = (-1.0f/25.0f)*(float)Math.Pow(i-359, 2)+20;
+            float grayScaleFiltering = Math.Max(5, Math.Max(quadraticOne, quadraticTwo));
             if(ColorIsGrayScale(pixels[i], grayScaleFiltering)) continue;
 
             float h, s, v;
             Color.RGBToHSV(pixels[i], out h, out s, out v);
 
-            amplification[(int)(h * 360)] += (int)((1.0f - Math.Min(Vector2.Distance(pixelPosition, centerPosition) / maxDistance, 1)) * 200);//Lower for actual use?
+            amplification[(int)(h * 360)] += (int)((1.0f - Math.Min(Vector2.Distance(pixelPosition, centerPosition) / maxDistance, 1)) * 4);//Lower for actual use?
 
             hues[coloredPixels] = (int)(h * 360);
             saturations[coloredPixels] = (int)(s * 100);
@@ -148,12 +150,12 @@ public class ColorBoundsHandler : MonoBehaviour
         int[] normalizedArray = ArrayManager.AddArrays(ArrayManager.NormalizeArray(hueOccurrencesCounted, 1000), savedHuesArray);
         Tuple<int, int> hueBounds = ArrayManager.GetBoundsOfHighestDensityValues(normalizedArray, hueSensitivity, maxIndex);
 
-        int[] processedArray = ArrayManager.ExtremifyArray(ArrayManager.NormalizeArray(ArrayManager.RemoveValuesOutOfIndexRange(hueOccurrencesCounted, hueBounds.Item1, hueBounds.Item2), 1000), 0);
+        int[] processedArray = ArrayManager.ExtremifyArray(ArrayManager.NormalizeArray(ArrayManager.RemoveValuesOutOfIndexRange(hueOccurrencesCounted, hueBounds.Item1, hueBounds.Item2), 1000), 0.5f);
         savedHuesArray = ArrayManager.MergeArrays(savedHuesArray, processedArray);
         FileUtils.IntArrayToFile(savedHuesArray, savedHuesArrayFileName);
         // Tuple<int, int> hueBounds = GetBoundsFromHue(ArrayManager.GetHighestIndex(hueOccurrencesCounted));
 
-        // hueOccurrencesCounted = ArrayManager.AddArrays(ArrayManager.SmoothIntArray(amplification, 5), hueOccurrencesCounted);
+        Shader.SetGlobalFloat("_GrayScaleSensitivity", Math.Max(5, Math.Max((-1.0f/300.0f)*(float)Math.Pow(maxIndex-20, 2)+35, (-1.0f/300.0f)*(float)Math.Pow(maxIndex-415, 2)+35)));
 
         Shader.SetGlobalFloat("_MinimumHue", hueBounds.Item1);
         Shader.SetGlobalFloat("_MaximumHue", hueBounds.Item2);
