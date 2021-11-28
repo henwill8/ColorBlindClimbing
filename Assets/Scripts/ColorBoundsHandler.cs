@@ -130,11 +130,11 @@ public class ColorBoundsHandler : MonoBehaviour
         Shader.SetGlobalFloat("_MinimumHue", hueBounds.Item1);
         Shader.SetGlobalFloat("_MaximumHue", hueBounds.Item2);
 
-        Tuple<int, int> satBounds = ArrayManager.GetBoundsOfHighestDensityValues(ArrayManager.SmoothIntArray(weightedSaturations, 5), 4, 15, 2.0f, false);
+        Tuple<int, int> satBounds = ArrayManager.GetBoundsOfHighestDensityValues(ArrayManager.SmoothIntArray(weightedSaturations, 10, false), 4, 15, 2.0f, false);
         Shader.SetGlobalFloat("_MinimumSaturation", satBounds.Item1);
         Shader.SetGlobalFloat("_MaximumSaturation", satBounds.Item2);
 
-        Tuple<int, int> valBounds = ArrayManager.GetBoundsOfHighestDensityValues(ArrayManager.SmoothIntArray(weightedValues, 5), 4, 10, 1.5f, false);
+        Tuple<int, int> valBounds = ArrayManager.GetBoundsOfHighestDensityValues(ArrayManager.SmoothIntArray(weightedValues, 10, false), 4, 10, 1.5f, false);
         Shader.SetGlobalFloat("_MinimumValue", valBounds.Item1);
         Shader.SetGlobalFloat("_MaximumValue", valBounds.Item2);
     }

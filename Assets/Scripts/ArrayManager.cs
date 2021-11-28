@@ -140,18 +140,18 @@ public class ArrayManager : MonoBehaviour
         return newArray;
     }
 
-    static public int[] SmoothIntArray(int[] array, int range)
+    static public int[] SmoothIntArray(int[] array, int range, bool keepCircular = true)
     {
         int[] smoothedArray = new int[array.Length];
 
         for(int i = 0; i < smoothedArray.Length; i++) {
-            smoothedArray[i] = GetAverageValue(array, i, range);
+            smoothedArray[i] = GetAverageValue(array, i, range, keepCircular);
         }
 
         return smoothedArray;
     }
 
-    static public int GetAverageValue(int[] array, int index, int range)
+    static public int GetAverageValue(int[] array, int index, int range, bool keepCircular = true)
     {
         if(range == 0) return array[index];
 
@@ -159,11 +159,17 @@ public class ArrayManager : MonoBehaviour
         int count = 0;
         
         for(int i = 0; i < totalValues; i++) {
-            count += array[Utils.KeepInCircularRange(0, array.Length-1, index + i + range)];
+            int rawIndex = index + i - range;
+            int circularIndex = Utils.KeepInCircularRange(0, array.Length-1, rawIndex);
+            if(!keepCircular && (rawIndex <= 0 || rawIndex >= array.Length-1)) {
+                totalValues--;
+                continue;
+            }
+            count += array[circularIndex];
         }
 
         return (int)(count / totalValues);
-    }
+    }//Check if this works at the array ends when not circular
 
     static public int GetHighestAverageIndex(int[] array, int distance = 0)
     {
