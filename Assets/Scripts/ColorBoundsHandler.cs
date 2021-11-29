@@ -97,14 +97,14 @@ public class ColorBoundsHandler : MonoBehaviour
         Shader.SetGlobalFloat("_MaximumHue", hueBounds.Item2);
         
         // Get Saturation Bounds
-        smoothedSaturations = ArrayManager.SmoothIntArray(weightedSaturations, 2, false);
-        Tuple<int, int> satBounds = ArrayManager.GetBoundsOfHighestDensityValues(smoothedSaturations, 5, 10, 10, false);
+        smoothedSaturations = ArrayManager.SmoothIntArray(weightedSaturations, 10, false);
+        Tuple<int, int> satBounds = ArrayManager.GetBoundsOfHighestDensityValues(smoothedSaturations, 5, 15, 10, false);
         Shader.SetGlobalFloat("_MinimumSaturation", satBounds.Item1);
         Shader.SetGlobalFloat("_MaximumSaturation", satBounds.Item2);
 
         // Get Value Bounds
-        smoothedValues = ArrayManager.SmoothIntArray(weightedValues, 2, false);
-        Tuple<int, int> valBounds = ArrayManager.GetBoundsOfHighestDensityValues(smoothedValues, 5, 10, 10, false);
+        smoothedValues = ArrayManager.SmoothIntArray(weightedValues, 10, false);
+        Tuple<int, int> valBounds = ArrayManager.GetBoundsOfHighestDensityValues(smoothedValues, 5, 15, 10, false);
         Shader.SetGlobalFloat("_MinimumValue", valBounds.Item1);
         Shader.SetGlobalFloat("_MaximumValue", valBounds.Item2);
     }
