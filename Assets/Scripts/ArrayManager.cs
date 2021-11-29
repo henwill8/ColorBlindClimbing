@@ -156,19 +156,22 @@ public class ArrayManager : MonoBehaviour
         if(range == 0) return array[index];
 
         int totalValues = range * 2 + 1;
+        int skippedValues = 0;
         int count = 0;
         
         for(int i = 0; i < totalValues; i++) {
-            int rawIndex = index + i - range;
+            int rawIndex = index + i - (range);
             int circularIndex = Utils.KeepInCircularRange(0, array.Length-1, rawIndex);
-            if(!keepCircular && (rawIndex <= 0 || rawIndex >= array.Length-1)) {
-                totalValues--;
+
+            if(!keepCircular && (rawIndex < 0 || rawIndex > array.Length-1)) {
+                skippedValues++;
                 continue;
             }
+
             count += array[circularIndex];
         }
 
-        return (int)(count / totalValues);
+        return (int)(count / (totalValues - skippedValues));
     }//Check if this works at the array ends when not circular
 
     static public int GetHighestAverageIndex(int[] array, int distance = 0)
@@ -188,7 +191,7 @@ public class ArrayManager : MonoBehaviour
         return highestIndex;
     }
 
-    static public Tuple<int, int> GetBoundsOfHighestDensityValues(int[] array, float sensitivity, int flatDistance = 10, float flatSensitivity = 1.5f, bool keepCircular = true, int highestIndex = -1, int maxIterations = 100)
+    static public Tuple<int, int> GetBoundsOfHighestDensityValues(int[] array, float sensitivity, int flatDistance = 10, int flatSensitivity = 10, bool keepCircular = true, int highestIndex = -1, int maxIterations = 100)
     {
         if(highestIndex == -1) highestIndex = ArrayManager.GetHighestAverageIndex(array, 0);
         int[] bounds = new int[2];
@@ -197,7 +200,9 @@ public class ArrayManager : MonoBehaviour
             int iterations = 0;
             int lowest = array.Max();
 
+            int flatBounds = array.Max() / flatSensitivity;
             int flatIndex = highestIndex;
+            int flatIteration = 0;
 
             bounds[i] = highestIndex;
 
@@ -208,9 +213,11 @@ public class ArrayManager : MonoBehaviour
                     iterations++;
                 }
 
-                int indexValue = Utils.KeepInCircularRange(0, array.Length-1, highestIndex + iterations);
-                if(!keepCircular && (highestIndex + iterations <= 0 || highestIndex + iterations >= array.Length-1)) {
-                    bounds[i] = indexValue;
+                int rawIndex = highestIndex + iterations;
+                int indexValue = Utils.KeepInCircularRange(0, array.Length-1, rawIndex);
+                if(!keepCircular && (rawIndex <= 0 || rawIndex >= array.Length-1)) {
+                    Debug.Log("Value has reached edge of array");
+                    bounds[i] = rawIndex;
                     break;
                 }
 
@@ -218,17 +225,19 @@ public class ArrayManager : MonoBehaviour
                     bounds[i] = indexValue;
                     lowest = array[indexValue];
                 }
-                if(array[indexValue] > array[flatIndex] * flatSensitivity || array[indexValue] < array[flatIndex] * (1.0f / flatSensitivity)) {
+                if(array[indexValue] > array[flatIndex] + flatBounds || array[indexValue] < array[flatIndex] - flatBounds) {
+                    Debug.Log(array[indexValue] + " " + array[flatIndex] + " " + flatBounds);
                     flatIndex = indexValue;
+                    flatIteration = System.Math.Abs(iterations);
                 }
                 
-                if(System.Math.Abs(flatIndex - indexValue) > flatDistance && System.Math.Abs(highestIndex - indexValue) > flatDistance) {
+                if(System.Math.Abs(iterations) - flatIteration > flatDistance && System.Math.Abs(iterations) > flatDistance) {
                     // bounds[i] = flatIndex;
-                    Debug.Log("Hue is flat");
+                    Debug.Log("Value is flat");
                     break;
                 }
                 if(array[indexValue] > array[bounds[i]] * sensitivity) {//This seems to be finding the top of the nearest mountain better than the function I specifically wrote for it does?
-                    Debug.Log("Hue is too large");
+                    Debug.Log("Value is too large");
                     break;
                 }
             }

@@ -30,21 +30,25 @@ public class Graph : MonoBehaviour
             GameObject.Destroy(child.gameObject);
         }
 
-        int[] hues = ColorBoundsHandler.smoothedHues;
-        if(showSavedArray) hues = ColorBoundsHandler.savedHuesArray;
+        int[] hues = ColorBoundsHandler.smoothedSaturations;
+        if(showSavedArray) hues = ColorBoundsHandler.smoothedValues;
 
         if(hues.Length == 0) return;
         
-        int maxIndex = ArrayManager.GetHighestAverageIndex(ColorBoundsHandler.smoothedHues, 0);
+        int maxIndex = ArrayManager.GetHighestAverageIndex(hues, 0);
 
-        int hueMin = (int)Shader.GetGlobalFloat("_MinimumHue");
-        int hueMax = (int)Shader.GetGlobalFloat("_MaximumHue");
+        int hueMin = (int)Shader.GetGlobalFloat("_MinimumSaturation");
+        int hueMax = (int)Shader.GetGlobalFloat("_MaximumSaturation");
+        if(showSavedArray) {
+            hueMin = (int)Shader.GetGlobalFloat("_MinimumValue");
+            hueMax = (int)Shader.GetGlobalFloat("_MaximumValue");
+        }
         // Debug.Log("Min, MaxIndex, and Max: "+hueMin+" "+maxIndex+" "+hueMax);
 
         // int minShown = Utils.KeepInCircularRange(0, hues.Length-1, hueMin-25);
         // int maxShown = Utils.KeepInCircularRange(0, hues.Length-1, hueMax+25);
         int minShown = 0;
-        int maxShown = 360;
+        int maxShown = hues.Length;
         // Debug.Log("Shown Range: "+minShown+" "+maxShown);
         
         int valuesShown = maxShown - minShown;
@@ -65,7 +69,10 @@ public class Graph : MonoBehaviour
             Vector2 startPoint = new Vector2((i-minShown)*lineLength - size.x/2, size.y * (hues[circularRangeValue] / maxHeight) - size.y/2);
             Vector2 endPoint = new Vector2((i+1-minShown)*lineLength - size.x/2, size.y * (hues[Utils.KeepInCircularRange(0, hues.Length-1, i+1)] / maxHeight) - size.y/2);
             
-            Lines.CreateLine(startPoint, endPoint, transform, Color.HSVToRGB((float)circularRangeValue/360f, 1, 1), lineMaterial, lineThickness);
+            Color color = Color.HSVToRGB(0, (float)circularRangeValue / 100.0f, 1);
+            if(showSavedArray) color = Color.HSVToRGB(0, 0, (float)circularRangeValue / 100.0f);
+
+            if(i < maxShown-1) Lines.CreateLine(startPoint, endPoint, transform, color, lineMaterial, lineThickness);
             
             if(circularRangeValue == hueMin || circularRangeValue == hueMax || circularRangeValue == maxIndex) {
                 Lines.CreateLine(new Vector2((i-minShown)*lineLength - size.x/2, -size.y/2), new Vector2((i-minShown)*lineLength - size.x/2, size.y/2), transform, new Color(1, 1, 1), lineMaterial, lineThickness);

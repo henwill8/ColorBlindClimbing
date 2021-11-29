@@ -56,15 +56,15 @@ public class CameraScript : MonoBehaviour
                 rt.sizeDelta = new Vector2(screenSize.x * aspectRatio, screenSize.x);
             }
 
-            Vector2 pos1 = new Vector2(-(rt.sizeDelta.x / 4), -(rt.sizeDelta.y / 4));
-            Vector2 pos2 = new Vector2(-(rt.sizeDelta.x / 4), rt.sizeDelta.y / 4);
-            Vector2 pos3 = new Vector2(rt.sizeDelta.x / 4, rt.sizeDelta.y / 4);
-            Vector2 pos4 = new Vector2(rt.sizeDelta.x / 4, -(rt.sizeDelta.y / 4));
+            // Vector2 pos1 = new Vector2(-(rt.sizeDelta.x / 4), -(rt.sizeDelta.y / 4));
+            // Vector2 pos2 = new Vector2(-(rt.sizeDelta.x / 4), rt.sizeDelta.y / 4);
+            // Vector2 pos3 = new Vector2(rt.sizeDelta.x / 4, rt.sizeDelta.y / 4);
+            // Vector2 pos4 = new Vector2(rt.sizeDelta.x / 4, -(rt.sizeDelta.y / 4));
 
-            Lines.CreateLine(pos1, pos2, transform.parent, new Color(1, 1, 1), lineMaterial, 7);
-            Lines.CreateLine(pos2, pos3, transform.parent, new Color(1, 1, 1), lineMaterial, 7);
-            Lines.CreateLine(pos3, pos4, transform.parent, new Color(1, 1, 1), lineMaterial, 7);
-            Lines.CreateLine(pos4, pos1, transform.parent, new Color(1, 1, 1), lineMaterial, 7);
+            // Lines.CreateLine(pos1, pos2, transform.parent, new Color(1, 1, 1), lineMaterial, 7);
+            // Lines.CreateLine(pos2, pos3, transform.parent, new Color(1, 1, 1), lineMaterial, 7);
+            // Lines.CreateLine(pos3, pos4, transform.parent, new Color(1, 1, 1), lineMaterial, 7);
+            // Lines.CreateLine(pos4, pos1, transform.parent, new Color(1, 1, 1), lineMaterial, 7);
 
             rawImage.enabled = true;
         }
