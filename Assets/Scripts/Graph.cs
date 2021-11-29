@@ -9,7 +9,7 @@ public class Graph : MonoBehaviour
 
     public Vector2 size;
 
-    public bool showSavedArray;
+    public int showSavedArray;
 
     public float lineThickness;
 
@@ -69,7 +69,7 @@ public class Graph : MonoBehaviour
             Vector2 startPoint = new Vector2((i-minShown)*lineLength - size.x/2, size.y * (hues[circularRangeValue] / maxHeight) - size.y/2);
             Vector2 endPoint = new Vector2((i+1-minShown)*lineLength - size.x/2, size.y * (hues[Utils.KeepInCircularRange(0, hues.Length-1, i+1)] / maxHeight) - size.y/2);
             
-            Color color = Color.HSVToRGB(0, (float)circularRangeValue / 100.0f, 1);
+            Color color = Color.HSVToRGB(change to whatever hue it should be, (float)circularRangeValue / 100.0f, 1);
             if(showSavedArray) color = Color.HSVToRGB(0, 0, (float)circularRangeValue / 100.0f);
 
             if(i < maxShown-1) Lines.CreateLine(startPoint, endPoint, transform, color, lineMaterial, lineThickness);
