@@ -5,7 +5,5 @@ Highlights holds of a color so that climbers (mainly for indoor bouldering) can 
     - Make more accurate between different hold hues
 - Gray Scale Filter (for choosing hold bounds and for after) needs adjusting
 - Make Saturation and Value bounds more accurate
-- Check if Too large option in bound finding is working as intended
-- Too flat pathway activates too much on large slopes and not enough on thin slopes
 - Actual ui
 - Tutorial if there is no saved array

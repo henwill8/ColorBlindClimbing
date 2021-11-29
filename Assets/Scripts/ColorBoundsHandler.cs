@@ -7,11 +7,6 @@ using System.IO;
 
 public class ColorBoundsHandler : MonoBehaviour
 {
-    static public float hueSensitivity = 2;
-    
-    static public Vector2 saturationRemoval = new Vector2(0.01f, 0.004f);
-    static public Vector2 valueRemoval = new Vector2(0.004f, 0.005f);
-
     static public int[] smoothedHues;
     static public int[] smoothedSaturations;
     static public int[] smoothedValues;
@@ -22,14 +17,6 @@ public class ColorBoundsHandler : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        Shader.SetGlobalFloat("_HueSensitivity", hueSensitivity);
-
-        Shader.SetGlobalFloat("_SaturationMinRemoval", saturationRemoval.x);
-        Shader.SetGlobalFloat("_SaturationMaxRemoval", saturationRemoval.y);
-
-        Shader.SetGlobalFloat("_ValueMinRemoval", valueRemoval.x);
-        Shader.SetGlobalFloat("_ValueMaxRemoval", valueRemoval.y);
-
         if(File.Exists(Path.Combine(Application.persistentDataPath, savedHuesArrayFileName))) {
             savedHuesArray = FileUtils.ReadFileToIntArray(savedHuesArrayFileName);
         } else {
@@ -40,13 +27,7 @@ public class ColorBoundsHandler : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        hueSensitivity = Shader.GetGlobalFloat("_HueSensitivity");
 
-        saturationRemoval.x = Shader.GetGlobalFloat("_SaturationMinRemoval");
-        saturationRemoval.y = Shader.GetGlobalFloat("_SaturationMaxRemoval");
-
-        valueRemoval.x = Shader.GetGlobalFloat("_ValueMinRemoval");
-        valueRemoval.y = Shader.GetGlobalFloat("_ValueMaxRemoval");
     }
 
     static public float GetColorValueFromInt(Color pixel, int i) {
@@ -105,7 +86,7 @@ public class ColorBoundsHandler : MonoBehaviour
         smoothedHues = ArrayManager.SmoothIntArray(weightedHues, 5);
         int maxIndex = ArrayManager.GetHighestAverageIndex(smoothedHues);
         int[] normalizedArray = ArrayManager.NormalizeArray(smoothedHues, 1000);
-        Tuple<int, int> hueBounds = ArrayManager.GetBoundsOfHighestDensityValues(ArrayManager.AddArrays(normalizedArray, savedHuesArray), hueSensitivity, 10, 10, true, maxIndex);
+        Tuple<int, int> hueBounds = ArrayManager.GetBoundsOfHighestDensityValues(ArrayManager.AddArrays(normalizedArray, savedHuesArray), 2, 10, 10, true, maxIndex);
 
         int[] processedArray = ArrayManager.ExtremifyArray(ArrayManager.RemoveValuesOutOfIndexRange(normalizedArray, hueBounds.Item1, hueBounds.Item2), 0);
         savedHuesArray = ArrayManager.MergeArrays(savedHuesArray, processedArray);
@@ -116,13 +97,13 @@ public class ColorBoundsHandler : MonoBehaviour
         Shader.SetGlobalFloat("_MaximumHue", hueBounds.Item2);
         
         // Get Saturation Bounds
-        smoothedSaturations = ArrayManager.SmoothIntArray(weightedSaturations, 10, false);
-        Tuple<int, int> satBounds = ArrayManager.GetBoundsOfHighestDensityValues(smoothedSaturations, 5, 15, 10, false);
+        smoothedSaturations = ArrayManager.SmoothIntArray(weightedSaturations, 2, false);
+        Tuple<int, int> satBounds = ArrayManager.GetBoundsOfHighestDensityValues(smoothedSaturations, 5, 10, 10, false);
         Shader.SetGlobalFloat("_MinimumSaturation", satBounds.Item1);
         Shader.SetGlobalFloat("_MaximumSaturation", satBounds.Item2);
 
         // Get Value Bounds
-        smoothedValues = ArrayManager.SmoothIntArray(weightedValues, 10, false);
+        smoothedValues = ArrayManager.SmoothIntArray(weightedValues, 2, false);
         Tuple<int, int> valBounds = ArrayManager.GetBoundsOfHighestDensityValues(smoothedValues, 5, 10, 10, false);
         Shader.SetGlobalFloat("_MinimumValue", valBounds.Item1);
         Shader.SetGlobalFloat("_MaximumValue", valBounds.Item2);
