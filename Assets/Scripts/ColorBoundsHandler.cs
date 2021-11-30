@@ -83,7 +83,7 @@ public class ColorBoundsHandler : MonoBehaviour
         }
         
         // Get Hue Bounds
-        smoothedHues = ArrayManager.SmoothIntArray(weightedHues, 5);
+        smoothedHues = ArrayManager.SmoothIntArray(weightedHues, 10);
         int maxIndex = ArrayManager.GetHighestAverageIndex(smoothedHues);
         int[] normalizedArray = ArrayManager.NormalizeArray(smoothedHues, 1000);
         Tuple<int, int> hueBounds = ArrayManager.GetBoundsOfHighestDensityValues(ArrayManager.AddArrays(normalizedArray, savedHuesArray), 2, 10, 10, true, maxIndex);
@@ -92,7 +92,7 @@ public class ColorBoundsHandler : MonoBehaviour
         savedHuesArray = ArrayManager.MergeArrays(savedHuesArray, processedArray);
         FileUtils.IntArrayToFile(savedHuesArray, savedHuesArrayFileName);
 
-        Shader.SetGlobalFloat("_GrayScaleSensitivity", Math.Max(5, Math.Max((-1.0f/300.0f)*(float)Math.Pow(maxIndex-20, 2)+35, (-1.0f/300.0f)*(float)Math.Pow(maxIndex-415, 2)+35)));
+        Shader.SetGlobalFloat("_GrayScaleSensitivity", Math.Max(12, Math.Max((-1.0f/300.0f)*(float)Math.Pow(maxIndex-20, 2)+35, (-1.0f/300.0f)*(float)Math.Pow(maxIndex-415, 2)+35)));
         Shader.SetGlobalFloat("_MinimumHue", hueBounds.Item1);
         Shader.SetGlobalFloat("_MaximumHue", hueBounds.Item2);
         
