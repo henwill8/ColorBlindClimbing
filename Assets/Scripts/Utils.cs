@@ -15,12 +15,16 @@ public class Utils
         return false;
     }
 
-    static public int KeepInCircularRange(int min, int max, int value)
+    static public int KeepInCircularRange(int value, int min, int max)
     {
-        while(value > max || value < min) {
+        int safety = 0;
+        while((value > max || value < min) && safety < 100) {
             if(value > max) value -= max - min + 1;
             if(value < min) value += max - min + 1;
+            
+            safety++;
         }
+        if(safety > 99) Debug.Log("INFINITE LOOP STOPPED AT KEEPINCICULARRANGE()");
         return value;
     }
 

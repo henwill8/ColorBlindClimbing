@@ -70,10 +70,10 @@ public class Graph : MonoBehaviour
         float maxHeight = hues.Max();
 
         for(int i = minShown; i < maxShown; i++) {
-            int circularRangeValue = Utils.KeepInCircularRange(0, hues.Length-1, i);
+            int circularRangeValue = Utils.KeepInCircularRange(i, 0, hues.Length-1);
 
             Vector2 startPoint = new Vector2((i-minShown)*lineLength - size.x/2, size.y * (hues[circularRangeValue] / maxHeight) - size.y/2);
-            Vector2 endPoint = new Vector2((i+1-minShown)*lineLength - size.x/2, size.y * (hues[Utils.KeepInCircularRange(0, hues.Length-1, i+1)] / maxHeight) - size.y/2);
+            Vector2 endPoint = new Vector2((i+1-minShown)*lineLength - size.x/2, size.y * (hues[Utils.KeepInCircularRange(i+1, 0, hues.Length-1)] / maxHeight) - size.y/2);
             
             Color color = Color.HSVToRGB((float)ArrayManager.GetHighestAverageIndex(ColorBoundsHandler.smoothedHues, 0) / 360.0f, (float)circularRangeValue / 100.0f, 1);
             if(showSavedArray == 1) color = Color.HSVToRGB(0, 0, (float)circularRangeValue / 100.0f);

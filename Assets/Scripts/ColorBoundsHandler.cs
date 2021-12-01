@@ -86,10 +86,10 @@ public class ColorBoundsHandler : MonoBehaviour
         smoothedHues = ArrayManager.SmoothIntArray(weightedHues, 10);
         int maxIndex = ArrayManager.GetHighestAverageIndex(smoothedHues);
         int[] normalizedArray = ArrayManager.NormalizeArray(smoothedHues, 1000);
-        Tuple<int, int> hueBounds = ArrayManager.GetBoundsOfHighestDensityValues(ArrayManager.AddArrays(normalizedArray, savedHuesArray), 2, 10, 10, true, maxIndex);
+        Tuple<int, int> hueBounds = ArrayManager.GetBoundsOfHighestDensityValues(ArrayManager.MergeArrays(normalizedArray, savedHuesArray), 1.4f, 15, 10, true, maxIndex);
 
-        int[] processedArray = ArrayManager.ExtremifyArray(ArrayManager.RemoveValuesOutOfIndexRange(normalizedArray, hueBounds.Item1, hueBounds.Item2), 0);
-        savedHuesArray = ArrayManager.MergeArrays(savedHuesArray, processedArray);
+        int[] processedArray = ArrayManager.ExtremifyArray(ArrayManager.RemoveValuesOutOfIndexRange(normalizedArray, hueBounds.Item1, hueBounds.Item2));
+        savedHuesArray = ArrayManager.MergeArrays(savedHuesArray, processedArray, 1, 2);
         FileUtils.IntArrayToFile(savedHuesArray, savedHuesArrayFileName);
 
         Shader.SetGlobalFloat("_GrayScaleSensitivity", Math.Max(12, Math.Max((-1.0f/300.0f)*(float)Math.Pow(maxIndex-20, 2)+35, (-1.0f/300.0f)*(float)Math.Pow(maxIndex-415, 2)+35)));

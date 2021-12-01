@@ -49,7 +49,7 @@ public class ArrayManager : MonoBehaviour
         Array.Resize(ref newArray, newArray.Length - skipped);
 
         return newArray;
-    }
+    }//Not using
 
     static public int[] IntValueCounter(int[] array, int values)
     {
@@ -62,22 +62,18 @@ public class ArrayManager : MonoBehaviour
         return newArray;
     }
 
-    static public int[] ExtremifyArray(int[] array, float extremity)
+    static public int[] ExtremifyArray(int[] array)
     {
         int[] newArray = new int[array.Length];
         int max = array.Max();
         int min = array.Min();
-        int midpoint = (max + min)/2;
-        int quaterpoint = (midpoint + min)/2;
+        int difference = max - min;
 
         // Debug.Log(max+" "+min+" "+midpoint);
 
         for(int i = 0; i < array.Length; i++) {
-            if(array[i] > quaterpoint) {
-                newArray[i] = (int)Mathf.Lerp(array[i], max, extremity);
-            } else {
-                newArray[i] = 0;
-            }
+            newArray[i] = (int)(difference * Utils.EaseInOutExpo((float)array[i] / (float)difference));
+            if(newArray[i] < (difference * 0.25f) + min) newArray[i] = 0;
         }
 
         return newArray;
@@ -95,18 +91,20 @@ public class ArrayManager : MonoBehaviour
         return newArray;
     }
 
-    static public int[] MergeArrays(int[] arrayA, int[] arrayB)
+    static public int[] MergeArrays(int[] arrayA, int[] arrayB, int aBias = 1, int bBias = 1, int filteringStrength = 10)
     {
         int maxLength = System.Math.Max(arrayA.Length, arrayB.Length);
         int[] mergedArray = new int[maxLength];
 
+        int maxValue = System.Math.Max(arrayA.Max(), arrayB.Max());
+
         for(int i = 0; i < maxLength; i++) {
-            if(arrayB[i] == 0) {
+            if(arrayB[i] < (float)maxValue / (float)filteringStrength) {
                 mergedArray[i] = arrayA[i];
-            } else if(arrayA[i] == 0) {
+            } else if(arrayA[i] < (float)maxValue / (float)filteringStrength) {
                 mergedArray[i] = arrayB[i];
             } else {
-                mergedArray[i] = (arrayA[i]*2 + arrayB[i]) / 3;
+                mergedArray[i] = (arrayA[i] * aBias + arrayB[i] * bBias) / (aBias+bBias);
             }
         }
 
@@ -161,7 +159,7 @@ public class ArrayManager : MonoBehaviour
         
         for(int i = 0; i < totalValues; i++) {
             int rawIndex = index + i - (range);
-            int circularIndex = Utils.KeepInCircularRange(0, array.Length-1, rawIndex);
+            int circularIndex = Utils.KeepInCircularRange(rawIndex, 0, array.Length-1);
 
             if(!keepCircular && (rawIndex < 0 || rawIndex > array.Length-1)) {
                 skippedValues++;
@@ -214,7 +212,7 @@ public class ArrayManager : MonoBehaviour
                 }
 
                 int rawIndex = highestIndex + iterations;
-                int indexValue = Utils.KeepInCircularRange(0, array.Length-1, rawIndex);
+                int indexValue = Utils.KeepInCircularRange(rawIndex, 0, array.Length-1);
                 if(!keepCircular && (rawIndex <= 0 || rawIndex >= array.Length-1)) {
                     Debug.Log("Value has reached edge of array");
                     bounds[i] = rawIndex;
@@ -226,13 +224,12 @@ public class ArrayManager : MonoBehaviour
                     lowest = array[indexValue];
                 }
                 if(array[indexValue] > array[flatIndex] + flatBounds || array[indexValue] < array[flatIndex] - flatBounds) {
-                    Debug.Log(array[indexValue] + " " + array[flatIndex] + " " + flatBounds);
                     flatIndex = indexValue;
                     flatIteration = System.Math.Abs(iterations);
                 }
                 
                 if(System.Math.Abs(iterations) - flatIteration > flatDistance && System.Math.Abs(iterations) > flatDistance) {
-                    // bounds[i] = flatIndex;
+                    bounds[i] = flatIndex;
                     Debug.Log("Value is flat");
                     break;
                 }
