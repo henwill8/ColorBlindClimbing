@@ -189,7 +189,7 @@ public class ArrayManager : MonoBehaviour
         return highestIndex;
     }
 
-    static public Tuple<int, int> GetBoundsOfHighestDensityValues(int[] array, float sensitivity, int flatDistance = 10, int flatSensitivity = 10, bool keepCircular = true, int highestIndex = -1, int maxIterations = 100)
+    static public Tuple<int, int> GetBoundsOfHighestDensityValues(int[] array, float sensitivity, int flatDistance = 10, int flatSensitivity = 10, bool keepFlatEndpoint = false, int flatBias = 2, bool keepCircular = true, int highestIndex = -1, int maxIterations = 100)
     {
         if(highestIndex == -1) highestIndex = ArrayManager.GetHighestAverageIndex(array, 0);
         int[] bounds = new int[2];
@@ -222,14 +222,19 @@ public class ArrayManager : MonoBehaviour
                 if(array[indexValue] < lowest || lowest == array.Max()) {
                     bounds[i] = indexValue;
                     lowest = array[indexValue];
+                } else if(array[indexValue] > lowest) {
+                    Debug.Log("Value is greater or equal to current lowest "+bounds[i]+" "+indexValue);
                 }
                 if(array[indexValue] > array[flatIndex] + flatBounds || array[indexValue] < array[flatIndex] - flatBounds) {
                     flatIndex = indexValue;
                     flatIteration = System.Math.Abs(iterations);
                 }
                 
-                if(System.Math.Abs(iterations) - flatIteration > flatDistance && System.Math.Abs(iterations) > flatDistance) {
-                    bounds[i] = flatIndex;
+                int flatEndValue = indexValue;
+                if(!keepFlatEndpoint) flatEndValue = flatIndex;
+
+                if(System.Math.Abs(iterations) - flatIteration > flatDistance && System.Math.Abs(iterations) > flatDistance && array[flatEndValue] < array.Max() / flatBias) {
+                    bounds[i] = flatEndValue;
                     Debug.Log("Value is flat");
                     break;
                 }

@@ -5,6 +5,12 @@ using System.Linq;
 using System;
 using System.IO;
 
+public struct HSV {
+    public float h;
+    public float s;
+    public float v;
+}
+
 public class ColorBoundsHandler : MonoBehaviour
 {
     static public int[] smoothedHues;
@@ -60,16 +66,17 @@ public class ColorBoundsHandler : MonoBehaviour
         Vector2 centerPosition = new Vector2(camera.width / 2, camera.height / 2);
         float maxDistance = Vector2.Distance(Vector2.zero, centerPosition) / 2;
 
+        HSV[] hsvPixels = new HSV[pixels.Length];
         int[] weightedHues = new int[360];
-        int[] filteredHues = new int[360];
-        int[] weightedSaturations = new int[101];
-        int[] weightedValues = new int[101];
+        int[] saturations = new int[101];
+        int[] values = new int[101];
 
         for(int i = 0; i < pixels.Length; i++) {
             Vector2 pixelPosition = new Vector2(i % lineLength, i / lineLength);
 
-            float h, s, v;
-            Color.RGBToHSV(pixels[i], out h, out s, out v);
+            HSV hsv;
+            Color.RGBToHSV(pixels[i], out hsv.h, out hsv.s, out hsv.v);
+            hsvPixels[i] = hsv;
 
             int weightAmount = (int)((1.0f - Math.Min(Vector2.Distance(pixelPosition, centerPosition) / maxDistance, 1)) * 10);
 
@@ -77,34 +84,43 @@ public class ColorBoundsHandler : MonoBehaviour
             float quadraticTwo = (-1.0f/25.0f)*(float)Math.Pow(i-359, 2)+20;
             float grayScaleFiltering = Math.Max(10, Math.Max(quadraticOne, quadraticTwo));
 
-            if(!ColorIsGrayScale(pixels[i], grayScaleFiltering)) weightedHues[(int)(h * 360)] += weightAmount;
-            weightedSaturations[(int)(s * 100)] += weightAmount;
-            weightedValues[(int)(v * 100)] += weightAmount;
+            if(!ColorIsGrayScale(pixels[i], grayScaleFiltering)) weightedHues[(int)(hsv.h * 360)] += weightAmount;
         }
         
         // Get Hue Bounds
         smoothedHues = ArrayManager.SmoothIntArray(weightedHues, 10);
         int maxIndex = ArrayManager.GetHighestAverageIndex(smoothedHues);
         int[] normalizedArray = ArrayManager.NormalizeArray(smoothedHues, 1000);
-        Tuple<int, int> hueBounds = ArrayManager.GetBoundsOfHighestDensityValues(ArrayManager.MergeArrays(normalizedArray, savedHuesArray), 1.4f, 15, 10, true, maxIndex);
+        Tuple<int, int> hueBounds = ArrayManager.GetBoundsOfHighestDensityValues(ArrayManager.MergeArrays(normalizedArray, savedHuesArray, 1, 1, 10), 1.4f, 15, 10, true, 2, true, maxIndex);
 
         int[] processedArray = ArrayManager.ExtremifyArray(ArrayManager.RemoveValuesOutOfIndexRange(normalizedArray, hueBounds.Item1, hueBounds.Item2));
-        savedHuesArray = ArrayManager.MergeArrays(savedHuesArray, processedArray, 1, 2);
+        processedArray[hueBounds.Item1] = processedArray.Max();
+        processedArray[hueBounds.Item2] = processedArray.Max();
+        savedHuesArray = ArrayManager.MergeArrays(savedHuesArray, processedArray, 1, 2, 20);
         FileUtils.IntArrayToFile(savedHuesArray, savedHuesArrayFileName);
 
         Shader.SetGlobalFloat("_GrayScaleSensitivity", Math.Max(12, Math.Max((-1.0f/300.0f)*(float)Math.Pow(maxIndex-20, 2)+35, (-1.0f/300.0f)*(float)Math.Pow(maxIndex-415, 2)+35)));
         Shader.SetGlobalFloat("_MinimumHue", hueBounds.Item1);
         Shader.SetGlobalFloat("_MaximumHue", hueBounds.Item2);
+
+        // smoothedHues = ArrayManager.MergeArrays(normalizedArray, savedHuesArray, 1, 1, 10);//REMOVE THIS AFTER TESTING
+
+        foreach(HSV pixel in hsvPixels) {
+            if(Utils.IsInCircularRange((int)(pixel.h * 360), hueBounds.Item1, hueBounds.Item2)) {
+                saturations[(int)(pixel.s * 100)]++;
+                values[(int)(pixel.v * 100)]++;
+            }
+        }
         
         // Get Saturation Bounds
-        smoothedSaturations = ArrayManager.SmoothIntArray(weightedSaturations, 10, false);
-        Tuple<int, int> satBounds = ArrayManager.GetBoundsOfHighestDensityValues(smoothedSaturations, 5, 15, 10, false);
+        smoothedSaturations = ArrayManager.SmoothIntArray(saturations, 10, false);
+        Tuple<int, int> satBounds = ArrayManager.GetBoundsOfHighestDensityValues(smoothedSaturations, 5, 15, 10, false, 4, false);
         Shader.SetGlobalFloat("_MinimumSaturation", satBounds.Item1);
         Shader.SetGlobalFloat("_MaximumSaturation", satBounds.Item2);
 
         // Get Value Bounds
-        smoothedValues = ArrayManager.SmoothIntArray(weightedValues, 10, false);
-        Tuple<int, int> valBounds = ArrayManager.GetBoundsOfHighestDensityValues(smoothedValues, 5, 15, 10, false);
+        smoothedValues = ArrayManager.SmoothIntArray(values, 10, false);
+        Tuple<int, int> valBounds = ArrayManager.GetBoundsOfHighestDensityValues(smoothedValues, 5, 15, 10, false, 4, false);
         Shader.SetGlobalFloat("_MinimumValue", valBounds.Item1);
         Shader.SetGlobalFloat("_MaximumValue", valBounds.Item2);
     }
