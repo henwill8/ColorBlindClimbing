@@ -5,75 +5,74 @@ using System;
 
 public class ColorConversions
 {
-    // From https://bitbucket.org/hasullivan/color-space/src/master/ColorSpaceConversion/Conversion.cs
-    public static Vector3 RGBToXYZ(Color color)
+    // https://github.com/goagostudio/unity-colorutils/blob/master/ColorUtils.cs
+    public static ColorHSL RGBtoHSL(Color color)
     {
-        float[] xyz = new float[4];
-        float[] rgb = new float[] { color.r, color.g, color.b };
+        float max = Mathf.Max(Mathf.Max(color.r, color.g), color.b);
+        float min = Mathf.Min(Mathf.Min(color.r, color.g), color.b);
 
-        for (int i = 0; i < 3; i++)
+        float h;
+        float s;
+        float l = (max + min) / 2f;
+
+        if (max == min)
         {
-            if (rgb[i] > .04045f)
+            h = s = 0;
+        }
+        else
+        {
+            float d = max - min;
+            s = l > .5f ? d / (2f - max - min) : d / (max + min);
+
+            if (max == color.r)
             {
-                rgb[i] = (float)Math.Pow((rgb[i] + .055) / 1.055, 2.4);
+                h = (color.g - color.b) / d + (color.g < color.b ? 6f : 0);
+            }
+            else if (max == color.g)
+            {
+                h = (color.b - color.r) / d + 2f;
             }
             else
             {
-                rgb[i] = rgb[i] / 12.92f;
+                h = (color.r - color.g) / d + 4f;
             }
+            h /= 6;
         }
 
-        xyz[0] = (rgb[0] * .412453f) + (rgb[1] * .357580f) + (rgb[2] * .180423f);
-        xyz[1] = (rgb[0] * .212671f) + (rgb[1] * .715160f) + (rgb[2] * .072169f);
-        xyz[2] = (rgb[0] * .019334f) + (rgb[1] * .119193f) + (rgb[2] * .950227f);
-
-        return new Vector3(xyz[0], xyz[1], xyz[2]);
+        return new ColorHSL(h, s, l);
     }
 
-    // Method from link was wrong, this is adjusted
-    public static Vector3 XYZToLab(Vector3 color)
+    private static float HUEtoRGB(float p, float q, float t)
     {
-        float[] lab = new float[3];
-        float[] xyz = new float[3];
-        float[] col = new float[] { color.x, color.y, color.z };
+        if (t < 0) t += 1;
+        if (t > 1) t -= 1;
+        if (t < 1f / 6f) return p + (q - p) * 6f * t;
+        if (t < 1f / 2f) return q;
+        if (t < 2f / 3f) return p + (q - p) * (2f / 3f - t) * 6f;
+        return p;
+    }
 
-        xyz[0] = col[0] / 0.95047f;
-        xyz[1] = col[1] / 1.0f;
-        xyz[2] = col[2] / 1.08883f;
+    public static Color HSLtoRGB(ColorHSL color)// This is wrong
+    {
 
-        for (int i = 0; i < 3; i++)
+        float r;
+        float g;
+        float b;
+
+        if (color.s == 0)
         {
-            if (xyz[i] > .008856f)
-            {
-                xyz[i] = (float)Math.Pow(xyz[i], 1.0 / 3.0);
-            }
-            else
-            {
-                xyz[i] = ((xyz[i] * 903.3f) + 16.0f) / 116.0f;
-            }
+            r = g = b = color.l;
+        }
+        else
+        {
+            float q = color.l < .5f ? color.l * (1f + color.s) : color.l + color.s - color.l * color.s;
+            float p = 2f * color.l - q;
+
+            r = HUEtoRGB(p, q, color.h + 1f / 3f);
+            g = HUEtoRGB(p, q, color.h);
+            b = HUEtoRGB(p, q, color.h + 1f / 3f);
         }
 
-        lab[0] = (116.0f * xyz[1]) - 16.0f;
-        lab[1] = 500.0f * (xyz[0] - xyz[1]);
-        lab[2] = 200.0f * (xyz[1] - xyz[2]);
-
-        return new Vector3(lab[0], lab[1], lab[2]);
-    }
-
-    public static ColorUtils.LCH LabToLCH(Vector3 color)
-    {
-        ColorUtils.LCH lch = new ColorUtils.LCH();
-
-        lch.l = color[0];
-        lch.c = (float)Math.Sqrt((color[1] * color[1]) + (color[2] * color[2]));
-        lch.h = (float)Math.Atan2(color[2], color[1]) * 180.0f/(float)System.Math.PI;
-        if(lch.h < 0) lch.h += 360;
-
-        return lch;
-    }
-
-    public static ColorUtils.LCH RGBToLCH(Color color)
-    {
-        return LabToLCH(XYZToLab(RGBToXYZ(color)));
+        return new Color(r, g, b);
     }
 }

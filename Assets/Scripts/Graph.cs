@@ -30,8 +30,8 @@ public class Graph : MonoBehaviour
             GameObject.Destroy(child.gameObject);
         }
 
-        int[] hues = ColorBoundsHandler.smoothedSaturations;
-        if(showSavedArray == 1) hues = ColorBoundsHandler.smoothedValues;
+        int[] hues = ColorBoundsHandler.smoothedLuminosity;
+        if(showSavedArray == 1) hues = ColorBoundsHandler.smoothedLuminosity;
         else if(showSavedArray == 2) hues = ColorBoundsHandler.smoothedHues;
         else if(showSavedArray == 3) hues = ColorBoundsHandler.savedHuesArray;
 
@@ -40,11 +40,11 @@ public class Graph : MonoBehaviour
         int maxIndex = ArrayManager.GetHighestAverageIndex(hues, 0);
         if(showSavedArray == 3) maxIndex = ArrayManager.GetHighestAverageIndex(ColorBoundsHandler.smoothedHues, 0);
 
-        int hueMin = (int)Shader.GetGlobalFloat("_MinimumSaturation");
-        int hueMax = (int)Shader.GetGlobalFloat("_MaximumSaturation");
+        int hueMin = (int)Shader.GetGlobalFloat("_MinimumLuminosity");
+        int hueMax = (int)Shader.GetGlobalFloat("_MaximumLuminosity");
         if(showSavedArray == 1) {
-            hueMin = (int)Shader.GetGlobalFloat("_MinimumValue");
-            hueMax = (int)Shader.GetGlobalFloat("_MaximumValue");
+            // hueMin = (int)Shader.GetGlobalFloat("_MinimumValue");
+            // hueMax = (int)Shader.GetGlobalFloat("_MaximumValue");
         } else if(showSavedArray > 1) {
             hueMin = (int)Shader.GetGlobalFloat("_MinimumHue");
             hueMax = (int)Shader.GetGlobalFloat("_MaximumHue");
@@ -75,9 +75,8 @@ public class Graph : MonoBehaviour
             Vector2 startPoint = new Vector2((i-minShown)*lineLength - size.x/2, size.y * (hues[circularRangeValue] / maxHeight) - size.y/2);
             Vector2 endPoint = new Vector2((i+1-minShown)*lineLength - size.x/2, size.y * (hues[Utils.KeepInCircularRange(i+1, 0, hues.Length-1)] / maxHeight) - size.y/2);
             
-            Color color = Color.HSVToRGB((float)ArrayManager.GetHighestAverageIndex(ColorBoundsHandler.smoothedHues, 0) / 360.0f, (float)circularRangeValue / 100.0f, 1);
-            if(showSavedArray == 1) color = Color.HSVToRGB(0, 0, (float)circularRangeValue / 100.0f);
-            else if(showSavedArray > 1) color = Color.HSVToRGB((float)circularRangeValue / 360.0f, 1, 1);
+            Color color = ColorConversions.HSLtoRGB(new ColorHSL((float)ArrayManager.GetHighestAverageIndex(ColorBoundsHandler.smoothedHues, 0) / 360.0f, 1, (float)circularRangeValue / 100.0f));
+            if(showSavedArray > 1) color = Color.HSVToRGB((float)circularRangeValue / 360.0f, 1, 1);
 
             if(i < maxShown-1) Lines.CreateLine(startPoint, endPoint, transform, color, lineMaterial, lineThickness);
             

@@ -3,20 +3,40 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
+// https://github.com/goagostudio/unity-colorutils/blob/master/ColorUtils.cs
+public class ColorHSL
+{
+    private float _h;
+    private float _s;
+    private float _l;
+
+    public ColorHSL(float h = 0, float s = 0, float l = 0)
+    {
+        _h = h;
+        _s = s;
+        _l = l;
+    }
+
+    public float h
+    {
+        get { return _h; }
+        set { _h = value; }
+    }
+
+    public float s
+    {
+        get { return _s; }
+        set { _s = value; }
+    }
+
+    public float l {
+        get { return _l; }
+        set { _l = value; }
+    }
+}
+
 public class ColorUtils
 {
-    public struct HSV {
-        public float h;
-        public float s;
-        public float v;
-    }
-
-    public struct LCH {
-        public float l;
-        public float c;
-        public float h;
-    }
-
     static public float GetColorValueFromInt(Color pixel, int i)
     {
         if(i == 0) {
