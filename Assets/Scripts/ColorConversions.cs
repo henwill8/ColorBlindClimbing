@@ -46,9 +46,9 @@ public class ColorConversions
     {
         if (t < 0) t += 1;
         if (t > 1) t -= 1;
-        if (t < 1f / 6f) return p + (q - p) * 6f * t;
-        if (t < 1f / 2f) return q;
-        if (t < 2f / 3f) return p + (q - p) * (2f / 3f - t) * 6f;
+        if (t*6 < 1f) return p + (q - p) * 6f * t;
+        if (t*2 < 1f) return q;
+        if (t*3 < 2f) return p + (q - p) * (2f / 3f - t) * 6f;
         return p;
     }
 
@@ -70,7 +70,7 @@ public class ColorConversions
 
             r = HUEtoRGB(p, q, color.h + 1f / 3f);
             g = HUEtoRGB(p, q, color.h);
-            b = HUEtoRGB(p, q, color.h + 1f / 3f);
+            b = HUEtoRGB(p, q, color.h - 1f / 3f);
         }
 
         return new Color(r, g, b);
