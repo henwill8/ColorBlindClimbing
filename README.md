@@ -3,6 +3,8 @@ Highlights holds of a color so that climbers (mainly for indoor bouldering) can 
 # todo
 - Global color saves
     - Make more accurate between different hold hues
+    - Create way that stops overlapping colors from fighting for boundary control (ex: red and orange)
+        - Colorsets?
 - Gray Scale Filter (for choosing hold bounds and for after) needs adjusting
 - Make Saturation and Value bounds more accurate
 - Actual ui

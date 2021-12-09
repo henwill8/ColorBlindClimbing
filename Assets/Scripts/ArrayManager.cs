@@ -222,8 +222,7 @@ public class ArrayManager : MonoBehaviour
                 if(array[indexValue] < lowest || lowest == array.Max()) {
                     bounds[i] = indexValue;
                     lowest = array[indexValue];
-                } else if(array[indexValue] > lowest) {
-                    Debug.Log("Value is greater or equal to current lowest "+bounds[i]+" "+indexValue);
+                    if(!keepCircular) Debug.Log("Lowest is "+indexValue);
                 }
                 if(array[indexValue] > array[flatIndex] + flatBounds || array[indexValue] < array[flatIndex] - flatBounds) {
                     flatIndex = indexValue;
@@ -239,7 +238,7 @@ public class ArrayManager : MonoBehaviour
                     break;
                 }
                 if(array[indexValue] > array[bounds[i]] * sensitivity) {//This seems to be finding the top of the nearest mountain better than the function I specifically wrote for it does?
-                    Debug.Log("Value is too large");
+                    Debug.Log("Value is too large "+indexValue+" "+bounds[i]);
                     break;
                 }
             }

@@ -5,12 +5,6 @@ using System.Linq;
 using System;
 using System.IO;
 
-public struct HSV {
-    public float h;
-    public float s;
-    public float v;
-}
-
 public class ColorBoundsHandler : MonoBehaviour
 {
     static public int[] smoothedHues;
@@ -36,28 +30,9 @@ public class ColorBoundsHandler : MonoBehaviour
 
     }
 
-    static public float GetColorValueFromInt(Color pixel, int i) {
-        if(i == 0) {
-            return pixel.r;
-        } else if(i == 1) {
-            return pixel.g;
-        } else {
-            return pixel.b;
-        }
-    }
-
-    static public bool ColorIsGrayScale(Color color, float sensitivity) {
-        for(int i = 0; i < 3; i++) {
-            for(int j = 0; j < 3; j++) {
-                if(i == j) break;
-                if(System.Math.Abs(GetColorValueFromInt(color, i) - GetColorValueFromInt(color, j)) > sensitivity/255.0f) return false;
-            }
-        }
-        return true;
-    }
-
     static public void GetHighlightColor(WebCamTexture camera)
     {
+        Debug.Log("GETTING HOLD COLOR BOUNDS");
         int lineLength = camera.width;
         int lines = camera.height;
 
@@ -66,7 +41,7 @@ public class ColorBoundsHandler : MonoBehaviour
         Vector2 centerPosition = new Vector2(camera.width / 2, camera.height / 2);
         float maxDistance = Vector2.Distance(Vector2.zero, centerPosition) / 2;
 
-        HSV[] hsvPixels = new HSV[pixels.Length];
+        ColorUtils.HSV[] hsvPixels = new ColorUtils.HSV[pixels.Length];
         int[] weightedHues = new int[360];
         int[] saturations = new int[101];
         int[] values = new int[101];
@@ -74,17 +49,17 @@ public class ColorBoundsHandler : MonoBehaviour
         for(int i = 0; i < pixels.Length; i++) {
             Vector2 pixelPosition = new Vector2(i % lineLength, i / lineLength);
 
-            HSV hsv;
+            ColorUtils.HSV hsv;
             Color.RGBToHSV(pixels[i], out hsv.h, out hsv.s, out hsv.v);
             hsvPixels[i] = hsv;
 
             int weightAmount = (int)((1.0f - Math.Min(Vector2.Distance(pixelPosition, centerPosition) / maxDistance, 1)) * 10);
 
-            float quadraticOne = (-1.0f/25.0f)*(float)Math.Pow(i, 2)+20;
-            float quadraticTwo = (-1.0f/25.0f)*(float)Math.Pow(i-359, 2)+20;
+            float quadraticOne = (-1.0f/25.0f)*(float)Math.Pow(hsv.h * 360, 2)+25;
+            float quadraticTwo = (-1.0f/25.0f)*(float)Math.Pow((hsv.h * 360)-359, 2)+25;
             float grayScaleFiltering = Math.Max(10, Math.Max(quadraticOne, quadraticTwo));
 
-            if(!ColorIsGrayScale(pixels[i], grayScaleFiltering)) weightedHues[(int)(hsv.h * 360)] += weightAmount;
+            if(!ColorUtils.ColorIsGrayScale(pixels[i], grayScaleFiltering)) weightedHues[(int)(hsv.h * 360)] += weightAmount;
         }
         
         // Get Hue Bounds
@@ -94,9 +69,9 @@ public class ColorBoundsHandler : MonoBehaviour
         Tuple<int, int> hueBounds = ArrayManager.GetBoundsOfHighestDensityValues(ArrayManager.MergeArrays(normalizedArray, savedHuesArray, 1, 1, 10), 1.4f, 15, 10, true, 2, true, maxIndex);
 
         int[] processedArray = ArrayManager.ExtremifyArray(ArrayManager.RemoveValuesOutOfIndexRange(normalizedArray, hueBounds.Item1, hueBounds.Item2));
-        processedArray[hueBounds.Item1] = processedArray.Max();
-        processedArray[hueBounds.Item2] = processedArray.Max();
-        savedHuesArray = ArrayManager.MergeArrays(savedHuesArray, processedArray, 1, 2, 20);
+        // processedArray[hueBounds.Item1] /= 3;
+        // processedArray[hueBounds.Item2] /= 3;
+        savedHuesArray = ArrayManager.MergeArrays(savedHuesArray, processedArray, 1, 3, 20);
         FileUtils.IntArrayToFile(savedHuesArray, savedHuesArrayFileName);
 
         Shader.SetGlobalFloat("_GrayScaleSensitivity", Math.Max(12, Math.Max((-1.0f/300.0f)*(float)Math.Pow(maxIndex-20, 2)+35, (-1.0f/300.0f)*(float)Math.Pow(maxIndex-415, 2)+35)));
@@ -105,10 +80,17 @@ public class ColorBoundsHandler : MonoBehaviour
 
         // smoothedHues = ArrayManager.MergeArrays(normalizedArray, savedHuesArray, 1, 1, 10);//REMOVE THIS AFTER TESTING
 
-        foreach(HSV pixel in hsvPixels) {
-            if(Utils.IsInCircularRange((int)(pixel.h * 360), hueBounds.Item1, hueBounds.Item2)) {
-                saturations[(int)(pixel.s * 100)]++;
-                values[(int)(pixel.v * 100)]++;
+        for(int i = 0; i < pixels.Length; i++) {
+            Vector2 pixelPosition = new Vector2(i % lineLength, i / lineLength);
+            int weightAmount = (int)((1.0f - Math.Min(Vector2.Distance(pixelPosition, centerPosition) / maxDistance, 1)) * 5);
+
+            float quadraticOne = (-1.0f/25.0f)*(float)Math.Pow(hsvPixels[i].h * 360, 2)+25;
+            float quadraticTwo = (-1.0f/25.0f)*(float)Math.Pow((hsvPixels[i].h * 360)-359, 2)+25;
+            float grayScaleFiltering = Math.Max(10, Math.Max(quadraticOne, quadraticTwo));
+
+            if(!ColorUtils.ColorIsGrayScale(pixels[i], grayScaleFiltering) && Utils.IsInCircularRange((int)(hsvPixels[i].h * 360), hueBounds.Item1, hueBounds.Item2)) {
+                saturations[(int)(hsvPixels[i].s * 100)] += weightAmount;
+                values[(int)(hsvPixels[i].v * 100)] += weightAmount;
             }
         }
         
