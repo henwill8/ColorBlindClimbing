@@ -44,7 +44,7 @@ public class ColorBoundsHandler : MonoBehaviour
         int[] weightedHues = new int[360];
         int[] luminosity = new int[101];
 
-        float grayScaleSensitivity = Shader.GetGlobalFloat("_GrayScaleSensitivity");
+        float grayScaleSensitivity = 0.2f;
 
         for(int i = 0; i < pixels.Length; i++) {
             Vector2 pixelPosition = new Vector2(i % lineLength, i / lineLength);

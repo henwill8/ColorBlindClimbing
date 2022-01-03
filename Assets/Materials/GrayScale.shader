@@ -97,7 +97,7 @@ Shader "Custom/GrayScale"
 
             bool highlight = false;
             
-            if((cHSV.z >= _MinimumLuminosity/100.0f && cHSV.z <= _MaximumLuminosity/100.0f) && cHSV.y > _GrayScaleSensitivity) {
+            if((cHSV.z >= _MinimumLuminosity/100.0f && cHSV.z <= _MaximumLuminosity/100.0f) && cHSV.y > 0.2f) {
                 if(_MinimumHue > _MaximumHue) {
                     if(cHSV.x >= _MinimumHue/360.0f || cHSV.x <= _MaximumHue/360.0f) {
                         highlight = true;
